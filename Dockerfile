@@ -3,7 +3,7 @@ FROM node:lts-alpine
 
 
 # Install packages
-RUN apk add --no-cache git ffmpeg curl
+RUN apk add --no-cache git github-cli ffmpeg curl
 
 # check
 RUN node --version

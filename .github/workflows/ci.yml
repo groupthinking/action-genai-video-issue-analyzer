@@ -15,6 +15,9 @@ permissions:
   contents: read
   issues: write
   models: read
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -44,6 +47,12 @@ jobs:
           --health-start-period 20s
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: .genaiscript/cache/**
+          key: genaiscript-${{ github.run_id }}
+          restore-keys: |
+            genaiscript-
       - uses: ./
         with:
           github_issue: 1
