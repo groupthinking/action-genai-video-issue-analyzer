@@ -6,11 +6,6 @@ on:
   pull_request:
     branches:
       - main
-  workflow_dispatch:
-    inputs:
-      github_issue:
-        description: "GitHub issue number to comment on"
-        required: true
 permissions:
   contents: read
   issues: write
@@ -55,6 +50,6 @@ jobs:
             genaiscript-
       - uses: ./
         with:
-          github_issue: 1
+          github_issue: "1"
           github_token: ${{ secrets.GITHUB_TOKEN }}
           debug: "script"

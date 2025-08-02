@@ -1,7 +1,9 @@
 # GitHub Action Video Issue Analyzer
 
-This GitHub Action runs all video assets in an issue body through a LLM model to analyze the content.
-The default behavior is to summarize and extract task items but this can be customized through the `prompt` input.
+This GitHub Action runs all video assets in an issue body through a LLM model to analyze the content, or can analyze a direct video URL when triggered via workflow_dispatch.
+The default behavior is to summarize and extract task items but this can be customized through the `instructions` input.
+
+The action outputs the analysis results to the GitHub Step Summary for easy viewing in the Actions tab.
 
 ## Inputs
 
@@ -22,6 +24,7 @@ The default behavior is to summarize and extract task items but this can be cust
 | `azure_ai_inference_api_version` | Azure Serverless OpenAI API version | false |  |
 | `azure_ai_inference_api_credentials` | Azure Serverless OpenAI API credentials type | false |  |
 | `github_token` | GitHub token with `models: read` permission at least (https://microsoft.github.io/genaiscript/reference/github-actions/#github-models-permissions). | false |  |
+| `video_url` | Direct video URL to analyze (alternative to extracting from issue body). Used when triggered via workflow_dispatch. | false |  |
 
 ## Outputs
 
@@ -29,6 +32,8 @@ The default behavior is to summarize and extract task items but this can be cust
 |----|-----------|
 
 | `text` | The generated text output. |
+
+**Note**: The action also outputs the analysis results to the GitHub Step Summary (`$GITHUB_STEP_SUMMARY`) for easy viewing in the Actions tab.
 
 ## Usage
 
@@ -61,6 +66,8 @@ It will launch a whisper service in a container that can be used by genaiscript.
 ## Example
 
 Save the following in `.github/workflows/genai-video-issue-analyzer.yml` file:
+
+### For Issue-based Analysis (automatic trigger)
 
 ```yaml
 name: genai video issue analyzer
@@ -102,6 +109,114 @@ jobs:
       - uses: pelikhan/action-genai-video-issue-analyzer@v0 # update to the major version you want to use
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+```
+
+### For Direct Video URL Analysis (manual trigger)
+
+```yaml
+name: genai video issue analyzer
+on:
+  workflow_dispatch:
+    inputs:
+      video_url:
+        description: 'Direct video URL to analyze'
+        required: true
+        type: string
+      instructions:
+        description: 'Custom prompting instructions for the video'
+        required: false
+        default: 'Analyze the video and provide a summary of its content. Extract list of followup subissues if any. The transcript is your primary source of text information, ignore text in images.'
+        type: string
+permissions:
+    contents: read
+    models: read
+jobs:
+  genai-video-analyze:
+    runs-on: ubuntu-latest
+    services:
+      whisper:
+        image: onerahmet/openai-whisper-asr-webservice:latest
+        env:
+          ASR_MODEL: base
+          ASR_ENGINE: openai_whisper
+        ports:
+          - 9000:9000
+        options: >-
+          --health-cmd "curl -f http://localhost:9000/docs || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          --health-start-period 20s
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: .genaiscript/cache/**
+          key: genaiscript-${{ github.run_id }}
+          restore-keys: |
+            genaiscript-
+      - uses: pelikhan/action-genai-video-issue-analyzer@v0 # update to the major version you want to use
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          video_url: ${{ github.event.inputs.video_url }}
+          instructions: ${{ github.event.inputs.instructions }}
+```
+
+### Combined Workflow (both triggers)
+
+```yaml
+name: genai video issue analyzer
+on:
+  issues:
+    types: [opened, edited]
+  workflow_dispatch:
+    inputs:
+      video_url:
+        description: 'Direct video URL to analyze'
+        required: true
+        type: string
+      instructions:
+        description: 'Custom prompting instructions for the video'
+        required: false
+        default: 'Analyze the video and provide a summary of its content. Extract list of followup subissues if any. The transcript is your primary source of text information, ignore text in images.'
+        type: string
+permissions:
+    contents: read
+    issues: write
+    models: read
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+jobs:
+  genai-video-analyze:
+    runs-on: ubuntu-latest
+    services:
+      whisper:
+        image: onerahmet/openai-whisper-asr-webservice:latest
+        env:
+          ASR_MODEL: base
+          ASR_ENGINE: openai_whisper
+        ports:
+          - 9000:9000
+        options: >-
+          --health-cmd "curl -f http://localhost:9000/docs || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          --health-start-period 20s
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: .genaiscript/cache/**
+          key: genaiscript-${{ github.run_id }}
+          restore-keys: |
+            genaiscript-
+      - uses: pelikhan/action-genai-video-issue-analyzer@v0 # update to the major version you want to use
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          video_url: ${{ github.event.inputs.video_url }}
+          instructions: ${{ github.event.inputs.instructions }}
 ```
 
 ## Development

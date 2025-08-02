@@ -57,6 +57,13 @@ inputs:
       (https://microsoft.github.io/genaiscript/reference/github-actions/#github\
       -models-permissions)."
     required: false
+  github_issue:
+    description: "GitHub issue number to analyze. If not provided, the action will\
+      \ analyze the current pull request."
+    required: false
+  video_url:
+    description: "Direct video URL to analyze (alternative to extracting from issue body)"
+    required: false
 outputs:
   text:
     description: The generated text output.
