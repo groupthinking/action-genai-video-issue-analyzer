@@ -2,7 +2,7 @@
   "private": true,
   "version": "0.0.0",
   "dependencies": {
-    "genaiscript": "2.3.10"
+    "genaiscript": "2.3.12"
   },
   "scripts": {
     "upgrade": "npx -y npm-check-updates -u && npm install && npm run fix",
@@ -15,7 +15,7 @@
     "typecheck": "genaiscript scripts compile",
     "configure": "genaiscript configure action action-video-issue-analyzer",
     "test": "echo 'No tests defined.'",
-    "action": "genaiscript run action-video-issue-analyzer --github-workspace --pull-request-comment --no-run-trace --no-output-trace",
+    "action": "genaiscript run action-video-issue-analyzer --github-workspace --pull-request-comment --no-run-trace --output-trace $GITHUB_STEP_SUMMARY",
     "start": "WHISPERASR_API_BASE=http://whisper:9000 npm run action",
     "dev": "clear && GITHUB_ISSUE=1 DEBUG=script npm run action",
     "release": "sh release.sh"
