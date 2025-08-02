@@ -1,5 +1,5 @@
 name: Action-Genai-Video-Issue-Analyzer
-description: Analyzes videos upload as assets
+description: Analyzes videos uploaded as assets in GitHub issues or provided via direct URL.
 inputs:
   instructions:
     description: Custom prompting instructions for each video.
@@ -7,6 +7,12 @@ inputs:
     default: Analyze the video and provide a summary of its content. Extract list of
       followup subissues if any. The transcript is your primary source of text
       information, ignore text in images.
+  video_url:
+    description: Direct video URL to analyze (alternative to extracting from issue body)
+    required: false
+  files:
+    description: Files to process, separated by semi columns (;). .mp4
+    required: false
   debug:
     description: Enable debug logging
       (https://microsoft.github.io/genaiscript/reference/scripts/logging/).
@@ -14,6 +20,10 @@ inputs:
   model_alias:
     description: "A YAML-like list of model aliases and model id: `translation:
       github:openai/gpt-4o`"
+    required: false
+  github_issue:
+    description: GitHub issue number to use when generating comments
+      (https://microsoft.github.io/genaiscript/reference/scripts/github/)
     required: false
   openai_api_key:
     description: OpenAI API key
@@ -56,13 +66,6 @@ inputs:
     description: "GitHub token with `models: read` permission at least
       (https://microsoft.github.io/genaiscript/reference/github-actions/#github\
       -models-permissions)."
-    required: false
-  github_issue:
-    description: "GitHub issue number to analyze. If not provided, the action will\
-      \ analyze the current pull request."
-    required: false
-  video_url:
-    description: "Direct video URL to analyze (alternative to extracting from issue body)"
     required: false
 outputs:
   text:
