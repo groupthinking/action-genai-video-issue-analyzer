@@ -8,7 +8,7 @@ script({
       default:
         "Analyze the video and provide a summary of its content. Extract list of followup subissues if any. The transcript is your primary source of text information, ignore text in images.",
     },
-    video_url: {
+    videoUrl: {
       type: "string",
       description: "Direct video URL to analyze (alternative to extracting from issue body)",
     },
@@ -16,23 +16,22 @@ script({
 });
 
 const { dbg, output, vars } = env;
-const { instructions, video_url } = vars as { instructions: string; video_url?: string };
+const { instructions, videoUrl } = vars as { instructions?: string; videoUrl?: string };
 
-if (!instructions)
-  throw new Error(
-    "No instructions provided. Please provide instructions to process the video.",
-  );
+// Use default instructions if not provided
+const finalInstructions = instructions || 
+  "Analyze the video and provide a summary of its content. Extract list of followup subissues if any. The transcript is your primary source of text information, ignore text in images.";
 
 // Process direct video URL if provided
-if (video_url) {
-  dbg(`Processing direct video URL: ${video_url}`);
-  await processDirectVideoUrl(video_url);
+if (videoUrl) {
+  dbg(`Processing direct video URL: ${videoUrl}`);
+  await processDirectVideoUrl(videoUrl);
 } else {
   // Fallback to extracting from issue body
   const issue = await github.getIssue();
   if (!issue)
     throw new Error(
-      "No issue found in the context and no video_url provided. This action requires either an issue to be present or a video_url parameter.",
+      "No issue found in the context and no videoUrl provided. This action requires either an issue to be present or a videoUrl parameter.",
     );
 
   const RX = /^https:\/\/github.com\/user-attachments\/assets\/.+$/gim;
@@ -88,7 +87,7 @@ async function processVideo(filename: string) {
     (ctx) => {
       ctx.def("TRANSCRIPT", transcript?.srt, { ignoreEmpty: true }); // ignore silent videos
       ctx.defImages(frames, { detail: "low", sliceSample: 40 }); // low detail for better performance
-      ctx.$`${instructions}
+      ctx.$`${finalInstructions}
 ## Output format
 - Use GitHub Flavored Markdown (GFM) for markdown syntax formatting.
 - If you need to list tasks, use the format \`- [ ] task description\`.
