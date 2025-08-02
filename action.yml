@@ -57,6 +57,9 @@ inputs:
       (https://microsoft.github.io/genaiscript/reference/github-actions/#github\
       -models-permissions)."
     required: false
+  video_url:
+    description: "Direct video URL to analyze (alternative to extracting from issue body)"
+    required: false
 outputs:
   text:
     description: The generated text output.

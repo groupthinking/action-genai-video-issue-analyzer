@@ -2,6 +2,17 @@ name: genai video issue analyzer
 on:
   issues:
     types: [opened, edited]
+  workflow_dispatch:
+    inputs:
+      video_url:
+        description: 'Direct video URL to analyze'
+        required: true
+        type: string
+      instructions:
+        description: 'Custom prompting instructions for the video'
+        required: false
+        default: 'Analyze the video and provide a summary of its content. Extract list of followup subissues if any. The transcript is your primary source of text information, ignore text in images.'
+        type: string
 permissions:
     contents: read
     issues: write
@@ -32,3 +43,5 @@ jobs:
         with:
           github_issue: ${{ github.event.issue.number }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          video_url: ${{ github.event.inputs.video_url }}
+          instructions: ${{ github.event.inputs.instructions }}

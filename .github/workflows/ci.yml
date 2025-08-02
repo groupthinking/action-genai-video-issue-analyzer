@@ -10,7 +10,11 @@ on:
     inputs:
       github_issue:
         description: "GitHub issue number to comment on"
-        required: true
+        required: false
+      video_url:
+        description: "Direct video URL to analyze"
+        required: false
+        type: string
 permissions:
   contents: read
   issues: write
@@ -55,6 +59,7 @@ jobs:
             genaiscript-
       - uses: ./
         with:
-          github_issue: 1
+          github_issue: ${{ github.event.inputs.github_issue || '1' }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           debug: "script"
+          video_url: ${{ github.event.inputs.video_url }}

@@ -8,31 +8,44 @@ script({
       default:
         "Analyze the video and provide a summary of its content. Extract list of followup subissues if any. The transcript is your primary source of text information, ignore text in images.",
     },
+    video_url: {
+      type: "string",
+      description: "Direct video URL to analyze (alternative to extracting from issue body)",
+    },
   },
 });
 
 const { dbg, output, vars } = env;
-const issue = await github.getIssue();
-if (!issue)
-  throw new Error(
-    "No issue found in the context. This action requires an issue to be present.",
-  );
-const { instructions } = vars as { instructions: string };
+const { instructions, video_url } = vars as { instructions: string; video_url?: string };
+
 if (!instructions)
   throw new Error(
     "No instructions provided. Please provide instructions to process the video.",
   );
 
-const RX = /^https:\/\/github.com\/user-attachments\/assets\/.+$/gim;
-const assetLinks = Array.from(
-  new Set(Array.from(issue.body.matchAll(RX), (m) => m[0])),
-);
-if (assetLinks.length === 0)
-  cancel("No video assets found in the issue body, nothing to do.");
+// Process direct video URL if provided
+if (video_url) {
+  dbg(`Processing direct video URL: ${video_url}`);
+  await processDirectVideoUrl(video_url);
+} else {
+  // Fallback to extracting from issue body
+  const issue = await github.getIssue();
+  if (!issue)
+    throw new Error(
+      "No issue found in the context and no video_url provided. This action requires either an issue to be present or a video_url parameter.",
+    );
 
-dbg(`issue: %s`, issue.title);
+  const RX = /^https:\/\/github.com\/user-attachments\/assets\/.+$/gim;
+  const assetLinks = Array.from(
+    new Set(Array.from(issue.body.matchAll(RX), (m) => m[0])),
+  );
+  if (assetLinks.length === 0)
+    cancel("No video assets found in the issue body, nothing to do.");
 
-for (const assetLink of assetLinks) await processAssetLink(assetLink);
+  dbg(`issue: %s`, issue.title);
+
+  for (const assetLink of assetLinks) await processAssetLink(assetLink);
+}
 
 async function processAssetLink(assetLink: string) {
   output.heading(3, assetLink);
@@ -98,4 +111,33 @@ async function processVideo(filename: string) {
   } else {
     output.appendContent(text);
   }
+}
+
+async function processDirectVideoUrl(videoUrl: string) {
+  output.heading(3, `Direct Video: ${videoUrl}`);
+  dbg(`Processing direct video URL: ${videoUrl}`);
+  
+  // Download video from direct URL
+  const res = await fetch(videoUrl, { method: "GET" });
+  const contentType = res.headers.get("content-type") || "";
+  dbg(`download url: %s`, videoUrl);
+  dbg(`headers: %O`, res.headers);
+  
+  if (!res.ok)
+    throw new Error(
+      `Failed to download video from ${videoUrl}: ${res.status} ${res.statusText}`,
+    );
+  
+  if (!/^video\//.test(contentType)) {
+    output.p(`URL does not point to a video file, skipping`);
+    return;
+  }
+
+  // save and cache
+  const buffer = await res.arrayBuffer();
+  dbg(`size`, `${(buffer.byteLength / 1e6) | 0}Mb`);
+  const filename = await workspace.writeCached(buffer, { scope: "run" });
+  dbg(`filename`, filename);
+
+  await processVideo(filename);
 }
