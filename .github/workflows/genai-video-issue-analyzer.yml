@@ -1,4 +1,4 @@
-name: genai video issue analyzer
+name: Video Analyzer
 on:
   issues:
     types: [opened, edited]
