@@ -47,7 +47,7 @@ if (videoUrl) {
 }
 
 async function processAssetLink(assetLink: string) {
-  output.heading(3, assetLink);
+  output.heading(4, assetLink);
   dbg(assetLink);
   const downloadUrl = await github.resolveAssetUrl(assetLink);
   const res = await fetch(downloadUrl, { method: "GET" });
@@ -113,7 +113,7 @@ async function processVideo(filename: string) {
 }
 
 async function processDirectVideoUrl(videoUrl: string) {
-  output.heading(3, `Direct Video: ${videoUrl}`);
+  output.heading(4, videoUrl);
   dbg(`Processing direct video URL: ${videoUrl}`);
   
   // Download video from direct URL
