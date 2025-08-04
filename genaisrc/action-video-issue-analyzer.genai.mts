@@ -46,7 +46,7 @@ if (issue) {
 
 // process files
 for (const file of files) {
-  await processVideo(file.filename);
+  await processVideoFile(file);
 }
 
 async function processAssetLink(assetLink: string) {
@@ -141,5 +141,18 @@ async function processDirectVideoUrl(videoUrl: string) {
   const filename = await workspace.writeCached(buffer, { scope: "run" });
   dbg(`filename`, filename);
 
+  await processVideo(filename);
+}
+
+async function processVideoFile(file: WorkspaceFile) {
+  output.heading(4, file.filename);
+
+  // Read the file content
+  let filename = file.filename
+  if (file.encoding === "base64") {
+    // Save and cache the video file
+    filename = await workspace.writeCached(file, { scope: "run" });
+    dbg(`filename`, filename);
+  }
   await processVideo(filename);
 }
