@@ -18,6 +18,7 @@
     "action": "genaiscript run action-video-issue-analyzer --github-workspace --pull-request-comment --no-run-trace --out-output $GITHUB_STEP_SUMMARY",
     "start": "WHISPERASR_API_BASE=http://whisper:9000 npm run action",
     "dev": "clear && GITHUB_ISSUE=1 DEBUG=script npm run action",
+    "serve": "npm run whisperasr:start && genaiscript serve",
     "release": "sh release.sh"
   }
 }
