@@ -1,0 +1,26 @@
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "lib": [
+            "ES2022",
+            "DOM"
+        ],
+        "strict": true,
+        "types": [
+            "genaiscript"
+        ],
+        "baseUrl": "./",
+        "paths": {
+            "*": [
+                "*",
+                "node_modules/*"
+            ]
+        }
+    },
+    "include": [
+        "genaisrc/**/*.mts",
+        "genaisrc/**/*.ts"
+    ]
+}
