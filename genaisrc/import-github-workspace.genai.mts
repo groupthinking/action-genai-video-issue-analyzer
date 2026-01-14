@@ -26,12 +26,13 @@ if (!repoUrl.startsWith("https://github.com/")) {
 const repoName = repoUrl.split("/").pop()?.replace(".git", "") || "imported-workspace";
 const targetDir = `imported/${repoName}`;
 
-// Check if directory exists
-if (await fs.exists(targetDir)) {
+// Check if directory exists using workspace.stat
+const dirStat = await workspace.stat(targetDir);
+if (dirStat) {
     const overwrite = await host.confirm(`Directory ${targetDir} already exists. Overwrite?`);
     if (!overwrite) cancel("Import cancelled by user.");
-    // In a real shell we'd rm -rf, but here we might need a distinct command if fs.rm isn't recursive-friendly enough or just warn.
-    // Assuming we proceed:
+    // Remove existing directory if proceeding
+    await host.exec(`rm -rf ${targetDir}`);
 }
 
 console.log(`Cloning ${repoUrl} to ${targetDir}...`);

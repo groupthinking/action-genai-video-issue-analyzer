@@ -166,19 +166,46 @@ async function processDirectVideoUrl(videoUrl: string) {
 
   // Handle YouTube URLs
   if (/(?:youtube\.com|youtu\.be)/.test(videoUrl)) {
-      output.p(`Detected YouTube URL, downloading with yt-dlp...`);
-      // Use a safe temporary filename
-      const tempFile = `yt_${Math.random().toString(36).substring(7)}.mp4`;
+      const tempBase = `yt_${Math.random().toString(36).substring(7)}`;
 
       try {
-          // Download the video
-          await host.exec(`yt-dlp -f "best[ext=mp4]" -o "${tempFile}" "${videoUrl}"`);
-          output.p(`Download complete: ${tempFile}`);
+          // Download with permissive format to a workspace-managed cache location
+          output.p(`Downloading ${videoUrl}...`);
 
-          await processVideo(tempFile);
+          // Use workspace.writeCached to get a proper cache directory path
+          // Write a placeholder to get the cache directory structure
+          const placeholderPath = await workspace.writeCached(new Uint8Array([0]), { scope: "run" });
+          const cacheDir = placeholderPath.substring(0, placeholderPath.lastIndexOf('/'));
+          const tempTemplate = `${cacheDir}/${tempBase}.%(ext)s`;
+
+          dbg(`Using cache dir: ${cacheDir}`);
+          dbg(`Output template: ${tempTemplate}`);
+
+          // Download using yt-dlp with explicit output path
+          await host.exec(`yt-dlp -f "best" -o "${tempTemplate}" "${videoUrl}" --no-playlist`);
+
+          // Find the downloaded file using workspace.findFiles with glob pattern
+          const allFiles = await workspace.findFiles(`${cacheDir}/${tempBase}.*`);
+          const downloadedFile = allFiles.find(f =>
+              !f.filename.endsWith(".ytdl") &&
+              !f.filename.endsWith(".part")
+          );
+
+          if (!downloadedFile) {
+              const foundNames = allFiles.map(f => f.filename).join(", ");
+              throw new Error(`Download missing. Found: ${foundNames || "nothing"}`);
+          }
+
+          const fullPath = downloadedFile.filename;
+          output.p(`Processing: ${fullPath}`);
+          await processVideo(fullPath);
 
           // Clean up
-          await fs.rm(tempFile, { force: true });
+          try {
+              await host.exec(`rm -f "${fullPath}"`);
+          } catch (e) {
+              dbg(`Cleanup warning: ${e}`);
+          }
       } catch (e: any) {
           // Log the full error to the debug output for visibility
           output.error(`yt-dlp failed: ${e.message}`);
