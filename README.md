@@ -41,29 +41,15 @@ The action outputs the analysis results to the GitHub Step Summary for easy view
 ## Usage
 
 Add the following to your step in your workflow file.
-It will launch a whisper service in a container that can be used by genaiscript.
 
 ```yaml
 runs-on: ubuntu-latest
-services:
-  whisper:
-    image: onerahmet/openai-whisper-asr-webservice:latest
-    env:
-      ASR_MODEL: base
-      ASR_ENGINE: openai_whisper
-    ports:
-      - 9000:9000
-    options: >-
-      --health-cmd "curl -f http://localhost:9000/docs || exit 1"
-      --health-interval 10s
-      --health-timeout 5s
-      --health-retries 5
-      --health-start-period 20s
 steps:
   - uses: actions/checkout@v4
   - uses: pelikhan/action-genai-video-issue-analyzer@v0
     with:
       github_token: ${{ secrets.GITHUB_TOKEN }}
+      openai_api_key: ${{ secrets.OPENAI_API_KEY }} # Required for transcription
 ```
 
 ## Example
@@ -232,7 +218,7 @@ You can import an external GitHub repository to analyze its context (for "Techni
 To import a workspace:
 
 ```bash
-genaiscript run import-github-workspace
+npx genaiscript run import-github-workspace
 ```
 
 Follow the interactive prompts to provide the repository URL.

@@ -31,7 +31,7 @@ script({
   },
 });
 
-const { dbg, output, vars, files } = env;
+const { dbg, output, vars, files, host } = env;
 const { instructions, videoUrl } = vars as { instructions?: string; videoUrl?: string };
 
 // Use default instructions if not provided
@@ -101,8 +101,9 @@ async function processAssetLink(assetLink: string) {
 }
 
 async function processVideo(filename: string) {
+  // Default to cloud transcription (OpenAI) if Docker is not available
   const transcript = await transcribe(filename, {
-    model: "whisperasr:default",
+    model: "openai:whisper-1",
     cache: true,
   });
   if (!transcript) {
@@ -162,6 +163,27 @@ async function processVideo(filename: string) {
 async function processDirectVideoUrl(videoUrl: string) {
   output.heading(4, videoUrl);
   dbg(`Processing direct video URL: ${videoUrl}`);
+
+  // Handle YouTube URLs
+  if (/(?:youtube\.com|youtu\.be)/.test(videoUrl)) {
+      output.p(`Detected YouTube URL, downloading with yt-dlp...`);
+      // Use a safe temporary filename
+      const tempFile = `yt_${Math.random().toString(36).substring(7)}.mp4`;
+
+      try {
+          // Download the video
+          await host.exec(`yt-dlp -f "best[ext=mp4]" -o "${tempFile}" "${videoUrl}"`);
+          output.p(`Download complete: ${tempFile}`);
+
+          await processVideo(tempFile);
+
+          // Clean up
+          await fs.rm(tempFile, { force: true });
+      } catch (e) {
+          throw new Error(`Failed to download YouTube video: ${e.message}`);
+      }
+      return;
+  }
 
   // Download video from direct URL
   const res = await fetch(videoUrl, { method: "GET" });
