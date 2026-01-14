@@ -1,7 +1,7 @@
 HOW TO BUILD PIPELINE
 
 
-Examples QUESTIONS, OUTPUT, INPUT, MIX OF ALL : video to agent build  
+Examples QUESTIONS, OUTPUT, INPUT, MIX OF ALL : video to agent build
 	•	Use AI tools to validate a startup/app idea through a structured, 7-step process.
 	⁃	At each step, ask one thoughtful question and provide examples if needed.
 	⁃	Focus on generating actionable insights to ensure the idea solves a real problem with a clear path to build and launch.
@@ -25,7 +25,7 @@ Examples QUESTIONS, OUTPUT, INPUT, MIX OF ALL : video to agent build  
 	⁃	What makes the approach unique?
 	•	**Step 7:** Outline a build plan (MVP & feedback loop).
 	⁃	What are 5–10 practical steps to launch and validate with users?
-	⁃	What tools can help? 
+	⁃	What tools can help?
 
 With market research - Validate before you build—ensure there’s a real user pain Start narrow and expand only after you have strong user pull.
 
@@ -65,13 +65,13 @@ With market research - Validate before you build—ensure there’s a real user 
 	⁃	P1: Initial Query and Context Retrieval (ContextualAgent)
 	⁃	Target Agent: ContextualAgent
 	⁃	Goal: Initiate the session, establish the primary goal (kitten supplies), and retrieve contextually relevant long-term memories.
-	⁃	
+	⁃
 	⁃	{
 	⁃	“user_id”: “Aja_user_123”,
 	⁃	“query”: “I just got a new LLM! What types of tools and protocols should I look for?”
 	⁃	}
 	⁃	**Instructions for ContextualAgent:**
-	⁃	
+	⁃
 	⁃	1. Initiate a new session for `user_id`.
 	⁃	2. Based on the query, request relevant long-term data from the `LongTermMemoryDB` (P2), focusing on pet type (“cat”) and product category (“food”, “toys”).
 	⁃	3. Determine the appropriate external function (`ToolExecutor`) needed to fulfill the request.
@@ -151,7 +151,7 @@ Capture all spoken content and technical operations (terminal commands, output, 
 	⁃	Tools Required: Terminal Output Capture, Diff Analysis
 	•	Agent Name: OFSA (Output Formatting & Synthesis Agent)
 	•	Role: Synthesize and structure the output into a chronological, mirrored format with actionable development guidance. Integrate VTTA’s transcript and CSDAA’s technical data. Ensure strict chronological order. Provide guidance focused on replicating the efficient, multi-page workflow demonstrated using Sonnet 4.5.
-	•	Core Prompts/Instructions: Markdown & Structure Engine, 
+	•	Core Prompts/Instructions: Markdown & Structure Engine,
 
 
 
@@ -213,7 +213,7 @@ The user should perform a CSDAA Action Rewind Test to ensure the website is work
 	0.	Prioritize the creation of the basic Next.js project structure before modifying files or creating data directories.
 	0.	Establish the core data structures (services.ts, locations.ts, i18n.ts) that define the application’s complexity.
 	0.	Define the application’s complexity with 16 locations, 3 services, and 2 languages, resulting in 96 unique service+location pages.
-	⁃	
+	⁃
 	⁃	The App Router structure was set up for static generation using generateStaticParams.
 	⁃	The most impressive aspect was the simultaneous, multi-file correction of linting and TypeScript errors.
 	⁃	To replicate the project features, the following technical requirements are necessary:
