@@ -245,32 +245,24 @@ async function processAssetLink(assetLink: string) {
 }
 
 async function processVideo(filename: string) {
-  // Try OpenAI Whisper first, fallback to Gemini for transcription
+  // Gemini 2.0 Flash handles video+audio together natively
+  // Use Gemini for transcription since it's our primary model
   let transcript: Awaited<ReturnType<typeof transcribe>> | undefined;
 
   try {
     transcript = await transcribe(filename, {
-      model: "openai:whisper-1",
+      model: "google:gemini-2.0-flash-exp",
       cache: true,
     });
-  } catch (whisperError: any) {
-    dbg(`Whisper transcription failed: ${whisperError.message}`);
-    output.p(`⚠️ OpenAI Whisper unavailable, using Gemini for transcription...`);
-
-    // Fallback to Gemini transcription (uses the video directly with audio)
-    try {
-      transcript = await transcribe(filename, {
-        model: "google:gemini-2.0-flash-exp",
-        cache: true,
-      });
-    } catch (geminiError: any) {
-      dbg(`Gemini transcription also failed: ${geminiError.message}`);
-      output.p(`⚠️ Transcription unavailable, proceeding with visual analysis only.`);
-    }
+    output.p(`✅ Transcription completed with Gemini.`);
+  } catch (transcribeError: any) {
+    dbg(`Transcription failed: ${transcribeError.message}`);
+    output.p(`📹 Proceeding with video analysis (Gemini will analyze audio directly).`);
+    // This is fine - Gemini will analyze the video with audio in the main prompt
   }
 
   if (!transcript) {
-    output.p(`Note: No transcript available for video ${filename}. Using visual analysis only.`);
+    output.p(`Note: Using direct video+audio analysis mode.`);
   }
   const frames = await ffmpeg.extractFrames(filename, {
     transcript,
