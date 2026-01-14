@@ -181,30 +181,40 @@ async function processDirectVideoUrl(videoUrl: string) {
           dbg(`Using cache dir: ${cacheDir}`);
           dbg(`Output template: ${tempTemplate}`);
 
-          // Download using yt-dlp with explicit output path
-          await host.exec(`yt-dlp -f "best" -o "${tempTemplate}" "${videoUrl}" --no-playlist`);
+          // Download using yt-dlp with --print filename to capture the actual output path
+          // This avoids shell escaping issues with host.exec
+          const downloadResult = await host.exec(`yt-dlp -f "best" -o "${tempTemplate}" "${videoUrl}" --no-playlist --print after_move:filepath`);
 
-          // Find the downloaded file using workspace.findFiles with glob pattern
-          const allFiles = await workspace.findFiles(`${cacheDir}/${tempBase}.*`);
-          const downloadedFile = allFiles.find(f =>
-              !f.filename.endsWith(".ytdl") &&
-              !f.filename.endsWith(".part")
-          );
+          // The printed filepath is in stdout
+          const downloadedPath = (downloadResult.stdout || "")
+              .split("\n")
+              .map(line => line.trim())
+              .filter(line => line && line.includes(tempBase))
+              .pop();
 
-          if (!downloadedFile) {
-              const foundNames = allFiles.map(f => f.filename).join(", ");
-              throw new Error(`Download missing. Found: ${foundNames || "nothing"}`);
-          }
+          dbg(`yt-dlp reported path: ${downloadedPath}`);
 
-          const fullPath = downloadedFile.filename;
-          output.p(`Processing: ${fullPath}`);
-          await processVideo(fullPath);
+          if (!downloadedPath) {
+              // Fallback: construct the likely path using .mp4 extension (most common)
+              const likelyPath = `${cacheDir}/${tempBase}.mp4`;
+              dbg(`Fallback to likely path: ${likelyPath}`);
 
-          // Clean up
-          try {
-              await host.exec(`rm -f "${fullPath}"`);
-          } catch (e) {
-              dbg(`Cleanup warning: ${e}`);
+              // Verify it exists using workspace.stat
+              const stat = await workspace.stat(likelyPath);
+              if (!stat) {
+                  throw new Error(`Download failed. Expected file at: ${likelyPath}`);
+              }
+              output.p(`Processing: ${likelyPath}`);
+              await processVideo(likelyPath);
+
+              // Clean up
+              try { await host.exec(`rm -f "${likelyPath}"`); } catch (e) { dbg(`Cleanup warning: ${e}`); }
+          } else {
+              output.p(`Processing: ${downloadedPath}`);
+              await processVideo(downloadedPath);
+
+              // Clean up
+              try { await host.exec(`rm -f "${downloadedPath}"`); } catch (e) { dbg(`Cleanup warning: ${e}`); }
           }
       } catch (e: any) {
           // Log the full error to the debug output for visibility
