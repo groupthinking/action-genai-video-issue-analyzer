@@ -245,13 +245,32 @@ async function processAssetLink(assetLink: string) {
 }
 
 async function processVideo(filename: string) {
-  // Default to cloud transcription (OpenAI) if Docker is not available
-  const transcript = await transcribe(filename, {
-    model: "openai:whisper-1",
-    cache: true,
-  });
+  // Try OpenAI Whisper first, fallback to Gemini for transcription
+  let transcript: Awaited<ReturnType<typeof transcribe>> | undefined;
+
+  try {
+    transcript = await transcribe(filename, {
+      model: "openai:whisper-1",
+      cache: true,
+    });
+  } catch (whisperError: any) {
+    dbg(`Whisper transcription failed: ${whisperError.message}`);
+    output.p(`⚠️ OpenAI Whisper unavailable, using Gemini for transcription...`);
+
+    // Fallback to Gemini transcription (uses the video directly with audio)
+    try {
+      transcript = await transcribe(filename, {
+        model: "google:gemini-2.0-flash-exp",
+        cache: true,
+      });
+    } catch (geminiError: any) {
+      dbg(`Gemini transcription also failed: ${geminiError.message}`);
+      output.p(`⚠️ Transcription unavailable, proceeding with visual analysis only.`);
+    }
+  }
+
   if (!transcript) {
-    output.error(`no transcript found for video ${filename}.`);
+    output.p(`Note: No transcript available for video ${filename}. Using visual analysis only.`);
   }
   const frames = await ffmpeg.extractFrames(filename, {
     transcript,
