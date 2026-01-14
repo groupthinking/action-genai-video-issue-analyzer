@@ -24,9 +24,7 @@ ENVIRONMENT = "production"
 # - GOOGLE_API_KEY: Gemini API key for analysis
 # - OPENAI_API_KEY: OpenAI API key for Whisper transcription
 
-# Build settings
-[build]
-command = "npm run build:workers"
+# Note: No build step needed - workers/index.js is plain JavaScript
 
 # Staging environment
 [env.staging]
