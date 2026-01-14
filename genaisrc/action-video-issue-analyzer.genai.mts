@@ -172,7 +172,7 @@ async function processDirectVideoUrl(videoUrl: string) {
 
       try {
           // Download the video
-          await host.exec(`yt-dlp -f "best[ext=mp4]" -o "${tempFile}" "${videoUrl}"`);
+          await env.host.exec(`yt-dlp -f "best[ext=mp4]" -o "${tempFile}" "${videoUrl}"`);
           output.p(`Download complete: ${tempFile}`);
 
           await processVideo(tempFile);
