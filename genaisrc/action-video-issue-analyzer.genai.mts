@@ -257,9 +257,9 @@ async function processVideo(filename: string) {
     transcript,
   });
 
-  // Determine model and options based on environment or default to Gemini 3 for video
-  const modelId = vars.model || "gemini-3-pro-preview";
-  const isGemini3 = modelId.includes("gemini");
+  // Determine model and options based on environment or default to Gemini 2.0 Flash for video
+  const modelId = vars.model || "google:gemini-2.0-flash-exp";
+  const isGemini = modelId.includes("gemini");
   const isAgenticMode = (vars.outputMode as string) !== "summary";
 
   const modelOptions: any = {
@@ -276,7 +276,7 @@ async function processVideo(filename: string) {
       modelOptions.responseType = "json";
   }
 
-  if (isGemini3) {
+  if (isGemini) {
       // Gemini 3 specific optimizations for video
       modelOptions.thinking = true; // Enable thinking
       modelOptions.thinkingLevel = (vars.thinkingLevel as string) || "high";
