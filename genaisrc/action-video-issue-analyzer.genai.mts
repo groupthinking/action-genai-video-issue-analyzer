@@ -27,9 +27,153 @@ script({
       type: "string",
       description: "Gemini 3 media resolution (high, low)",
       default: "high",
+    },
+    outputMode: {
+      type: "string",
+      description: "Output mode: 'summary' for text summary, 'agentic' for executable workflow output",
+      default: "agentic",
     }
   },
 });
+
+// AgenticOutput Schema - Defines the structure for executable, market-ready output
+const AgenticOutputSchema: JSONSchema = {
+  type: "object",
+  required: ["summary", "actionableInsights", "generatedWorkflow"],
+  properties: {
+    summary: {
+      type: "object",
+      description: "High-level analysis of the video content",
+      properties: {
+        title: { type: "string", description: "Title derived from video content" },
+        description: { type: "string", description: "Brief description of what the video demonstrates" },
+        duration: { type: "string", description: "Estimated duration of key content" },
+        primaryTopic: { type: "string", description: "Main technical topic covered" },
+      },
+      required: ["title", "description", "primaryTopic"]
+    },
+    extractedEndpoints: {
+      type: "array",
+      description: "API endpoints mentioned or demonstrated",
+      items: {
+        type: "object",
+        properties: {
+          endpoint: { type: "string", description: "API endpoint URL or path" },
+          method: { type: "string", enum: ["GET", "POST", "PUT", "DELETE", "PATCH"] },
+          purpose: { type: "string", description: "What this endpoint does" },
+          timestamp: { type: "string", description: "When it appears in video" }
+        },
+        required: ["endpoint", "purpose"]
+      }
+    },
+    extractedCapabilities: {
+      type: "array",
+      description: "Model or system capabilities demonstrated",
+      items: {
+        type: "object",
+        properties: {
+          capability: { type: "string", description: "Name of the capability" },
+          description: { type: "string", description: "How it works" },
+          useCase: { type: "string", description: "Practical application" },
+          timestamp: { type: "string", description: "When demonstrated" }
+        },
+        required: ["capability", "description"]
+      }
+    },
+    actionableInsights: {
+      type: "array",
+      description: "Key takeaways that can be immediately acted upon",
+      items: {
+        type: "object",
+        properties: {
+          insight: { type: "string", description: "The actionable insight" },
+          priority: { type: "string", enum: ["high", "medium", "low"] },
+          implementation: { type: "string", description: "How to implement this" }
+        },
+        required: ["insight", "priority"]
+      }
+    },
+    generatedWorkflow: {
+      type: "object",
+      description: "Executable workflow that mirrors the video content",
+      properties: {
+        name: { type: "string", description: "Workflow name" },
+        description: { type: "string", description: "What this workflow accomplishes" },
+        steps: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              stepNumber: { type: "number" },
+              action: { type: "string", description: "Action to take" },
+              command: { type: "string", description: "CLI command if applicable" },
+              code: { type: "string", description: "Code snippet if applicable" },
+              expectedOutput: { type: "string", description: "What should happen" }
+            },
+            required: ["stepNumber", "action"]
+          }
+        },
+        prerequisites: {
+          type: "array",
+          items: { type: "string" },
+          description: "What needs to be set up before running"
+        },
+        estimatedTime: { type: "string", description: "Time to complete" }
+      },
+      required: ["name", "steps"]
+    },
+    codeArtifacts: {
+      type: "array",
+      description: "Executable code extracted from the video",
+      items: {
+        type: "object",
+        properties: {
+          filename: { type: "string", description: "Suggested filename" },
+          language: { type: "string", description: "Programming language" },
+          code: { type: "string", description: "The actual code" },
+          purpose: { type: "string", description: "What this code does" }
+        },
+        required: ["filename", "language", "code", "purpose"]
+      }
+    },
+    deploymentInstructions: {
+      type: "object",
+      description: "How to deploy the solution demonstrated",
+      properties: {
+        platform: { type: "string", description: "Target platform (e.g., Cloudflare, Vercel, GCP)" },
+        steps: {
+          type: "array",
+          items: { type: "string" },
+          description: "Step-by-step deployment instructions"
+        },
+        configFiles: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              filename: { type: "string" },
+              content: { type: "string" }
+            },
+            required: ["filename", "content"]
+          }
+        },
+        environmentVariables: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+              description: { type: "string" },
+              required: { type: "boolean" }
+            },
+            required: ["name", "description"]
+          }
+        }
+      }
+    }
+  }
+};
+
 
 const { dbg, output, vars, files } = env;
 const { instructions, videoUrl } = vars as { instructions?: string; videoUrl?: string };
@@ -116,13 +260,21 @@ async function processVideo(filename: string) {
   // Determine model and options based on environment or default to Gemini 3 for video
   const modelId = vars.model || "gemini-3-pro-preview";
   const isGemini3 = modelId.includes("gemini");
+  const isAgenticMode = (vars.outputMode as string) !== "summary";
 
   const modelOptions: any = {
       systemSafety: true,
       model: modelId,
-      responseType: "json", // Request JSON as per instructions
       label: `analyze video ${filename}`,
   };
+
+  // Use structured JSON schema for agentic output
+  if (isAgenticMode) {
+      modelOptions.responseType = "json_schema";
+      modelOptions.responseSchema = AgenticOutputSchema;
+  } else {
+      modelOptions.responseType = "json";
+  }
 
   if (isGemini3) {
       // Gemini 3 specific optimizations for video
@@ -131,7 +283,38 @@ async function processVideo(filename: string) {
       modelOptions.mediaResolution = (vars.mediaResolution as string) || "high";
   }
 
-  const { text, error } = await runPrompt(
+  const agenticPrompt = `You are a Video-to-Agentic Action Agent. Your goal is to transform video content into executable, deployable business systems.
+
+## Your Mission
+Analyze this video through the lens of "Functional Workflow Mirroring" - extract not just what is shown, but create executable code and workflows that replicate the demonstrated functionality.
+
+## Output Requirements
+1. **Summary**: Provide a clear title, description, and identify the primary technical topic
+2. **Extracted Endpoints**: List every API endpoint or URL mentioned with method and purpose
+3. **Extracted Capabilities**: Document all model/system capabilities demonstrated
+4. **Actionable Insights**: Provide prioritized takeaways with implementation guidance
+5. **Generated Workflow**: Create a step-by-step executable workflow with CLI commands and code snippets
+6. **Code Artifacts**: Extract or generate any code shown or implied in the video
+7. **Deployment Instructions**: Provide platform-specific deployment steps with config files
+
+## Context Items to Extract
+${vars.items || "API endpoints, model capabilities, technical implementations"}
+
+## Analysis Lens
+Analyze through the ARCHITECTURAL_CONTEXT principles:
+- Align with "Principles of Structure and State"
+- Follow "Agent Deployment Protocol"
+- Target UVAI.IO deployment where applicable`;
+
+  const summaryPrompt = `${finalInstructions}
+
+Analyze the video specifically through the lens of the ARCHITECTURAL_CONTEXT provided.
+Identify alignment with the "Principles of Structure and State" and "Agent Deployment Protocol".
+
+Context Items to lookout for:
+${vars.items || "API endpoints, model capabilities"}`;
+
+  const { text, error, json } = await runPrompt(
     (ctx) => {
       const srt = transcript?.srt || "";
       ctx.def("TRANSCRIPT", srt, { ignoreEmpty: true }); // ignore silent videos
@@ -140,21 +323,54 @@ async function processVideo(filename: string) {
       // Load Architectural Context from user prompts
       ctx.def("ARCHITECTURAL_CONTEXT", env.files.find(f => f.filename.endsWith("architectural_context.md")), { ignoreEmpty: true });
 
-      ctx.$`${finalInstructions}
-
-      Analyze the video specifically through the lens of the ARCHITECTURAL_CONTEXT provided.
-      Identify alignment with the "Principles of Structure and State" and "Agent Deployment Protocol".
-
-      Context Items to lookout for:
-      ${vars.items || "API endpoints, model capabilities"}
-
-      `.role("system");
+      ctx.$`${isAgenticMode ? agenticPrompt : summaryPrompt}`.role("system");
     },
     modelOptions,
   );
 
   if (error) {
     output.error(error?.message);
+  } else if (isAgenticMode && json) {
+    // Format agentic output beautifully
+    output.heading(3, "🎯 Agentic Analysis Results");
+
+    if (json.summary) {
+      output.heading(4, json.summary.title || "Video Analysis");
+      output.p(json.summary.description || "");
+      output.p(`**Primary Topic:** ${json.summary.primaryTopic || "N/A"}`);
+    }
+
+    if (json.actionableInsights?.length) {
+      output.heading(4, "⚡ Actionable Insights");
+      for (const insight of json.actionableInsights) {
+        output.p(`- **[${insight.priority?.toUpperCase()}]** ${insight.insight}`);
+        if (insight.implementation) output.p(`  → *Implementation:* ${insight.implementation}`);
+      }
+    }
+
+    if (json.generatedWorkflow?.steps?.length) {
+      output.heading(4, "🔧 Generated Workflow");
+      output.p(`**${json.generatedWorkflow.name}**`);
+      if (json.generatedWorkflow.description) output.p(json.generatedWorkflow.description);
+      for (const step of json.generatedWorkflow.steps) {
+        output.p(`${step.stepNumber}. ${step.action}`);
+        if (step.command) output.p(`   \`${step.command}\``);
+        if (step.code) output.appendContent(`\n\`\`\`\n${step.code}\n\`\`\`\n`);
+      }
+    }
+
+    if (json.codeArtifacts?.length) {
+      output.heading(4, "📄 Code Artifacts");
+      for (const artifact of json.codeArtifacts) {
+        output.p(`**${artifact.filename}** (${artifact.language})`);
+        output.p(`*Purpose:* ${artifact.purpose}`);
+        output.appendContent(`\n\`\`\`${artifact.language}\n${artifact.code}\n\`\`\`\n`);
+      }
+    }
+
+    // Also output the raw JSON for programmatic use
+    output.heading(4, "📊 Raw JSON Output");
+    output.appendContent(`\n\`\`\`json\n${JSON.stringify(json, null, 2)}\n\`\`\`\n`);
   } else {
     output.appendContent(text);
   }
