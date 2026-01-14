@@ -7,29 +7,32 @@ The action outputs the analysis results to the GitHub Step Summary for easy view
 
 ## Inputs
 
-|name|description|required|default|
-|----|-----------|--------|-------|
-| `instructions` | Custom prompting instructions for each video. | false | Analyze the video and provide a summary of its content. Extract list of followup subissues if any. The transcript is your primary source of text information, ignore text in images. |
-| `debug` | Enable debug logging (https://microsoft.github.io/genaiscript/reference/scripts/logging/). | false |  |
-| `model_alias` | A YAML-like list of model aliases and model id: `translation: github:openai/gpt-4o` | false |  |
-| `openai_api_key` | OpenAI API key | false |  |
-| `openai_api_base` | OpenAI API base URL | false |  |
-| `azure_openai_api_endpoint` | Azure OpenAI endpoint. In the Azure Portal, open your Azure OpenAI resource, Keys and Endpoints, copy Endpoint. | false |  |
-| `azure_openai_api_key` | Azure OpenAI API key. **You do NOT need this if you are using Microsoft Entra ID. | false |  |
-| `azure_openai_subscription_id` | Azure OpenAI subscription ID to list available deployments (Microsoft Entra only). | false |  |
-| `azure_openai_api_version` | Azure OpenAI API version. | false |  |
-| `azure_openai_api_credentials` | Azure OpenAI API credentials type. Leave as 'default' unless you have a special Azure setup. | false |  |
-| `azure_ai_inference_api_key` | Azure AI Inference key | false |  |
-| `azure_ai_inference_api_endpoint` | Azure Serverless OpenAI endpoint | false |  |
-| `azure_ai_inference_api_version` | Azure Serverless OpenAI API version | false |  |
-| `azure_ai_inference_api_credentials` | Azure Serverless OpenAI API credentials type | false |  |
-| `github_token` | GitHub token with `models: read` permission at least (https://microsoft.github.io/genaiscript/reference/github-actions/#github-models-permissions). | false |  |
-| `video_url` | Direct video URL to analyze (alternative to extracting from issue body). Used when triggered via workflow_dispatch. | false |  |
+| name                                 | description                                                                                                                                         | required | default                                                                                                                                                                              |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `instructions`                       | Custom prompting instructions for each video.                                                                                                       | false    | Analyze the video and provide a summary of its content. Extract list of followup subissues if any. The transcript is your primary source of text information, ignore text in images. |
+| `debug`                              | Enable debug logging (https://microsoft.github.io/genaiscript/reference/scripts/logging/).                                                          | false    |                                                                                                                                                                                      |
+| `model_alias`                        | A YAML-like list of model aliases and model id: `translation: github:openai/gpt-4o`                                                                 | false    |                                                                                                                                                                                      |
+| `openai_api_key`                     | OpenAI API key                                                                                                                                      | false    |                                                                                                                                                                                      |
+| `openai_api_base`                    | OpenAI API base URL                                                                                                                                 | false    |                                                                                                                                                                                      |
+| `azure_openai_api_endpoint`          | Azure OpenAI endpoint. In the Azure Portal, open your Azure OpenAI resource, Keys and Endpoints, copy Endpoint.                                     | false    |                                                                                                                                                                                      |
+| `azure_openai_api_key`               | Azure OpenAI API key. \*\*You do NOT need this if you are using Microsoft Entra ID.                                                                 | false    |                                                                                                                                                                                      |
+| `azure_openai_subscription_id`       | Azure OpenAI subscription ID to list available deployments (Microsoft Entra only).                                                                  | false    |                                                                                                                                                                                      |
+| `azure_openai_api_version`           | Azure OpenAI API version.                                                                                                                           | false    |                                                                                                                                                                                      |
+| `azure_openai_api_credentials`       | Azure OpenAI API credentials type. Leave as 'default' unless you have a special Azure setup.                                                        | false    |                                                                                                                                                                                      |
+| `azure_ai_inference_api_key`         | Azure AI Inference key                                                                                                                              | false    |                                                                                                                                                                                      |
+| `azure_ai_inference_api_endpoint`    | Azure Serverless OpenAI endpoint                                                                                                                    | false    |                                                                                                                                                                                      |
+| `azure_ai_inference_api_version`     | Azure Serverless OpenAI API version                                                                                                                 | false    |                                                                                                                                                                                      |
+| `azure_ai_inference_api_credentials` | Azure Serverless OpenAI API credentials type                                                                                                        | false    |                                                                                                                                                                                      |
+| `github_token`                       | GitHub token with `models: read` permission at least (https://microsoft.github.io/genaiscript/reference/github-actions/#github-models-permissions). | false    |                                                                                                                                                                                      |
+| `video_url`                          | Direct video URL to analyze (alternative to extracting from issue body). Used when triggered via workflow_dispatch.                                 | false    |                                                                                                                                                                                      |
+| `items`                              | List of specific items to extract from the video.                                                                                                   | false    | API endpoints, model capabilities                                                                                                                                                    |
+| `thinking_level`                     | Gemini 3 thinking level (`high`, `low`).                                                                                                            | false    | high                                                                                                                                                                                 |
+| `media_resolution`                   | Gemini 3 media resolution (`high`, `low`).                                                                                                          | false    | high                                                                                                                                                                                 |
 
 ## Outputs
 
-|name|description|
-|----|-----------|
+| name | description |
+| ---- | ----------- |
 
 | `text` | The generated text output. |
 
@@ -41,26 +44,26 @@ Add the following to your step in your workflow file.
 It will launch a whisper service in a container that can be used by genaiscript.
 
 ```yaml
-    runs-on: ubuntu-latest
-    services:
-      whisper:
-        image: onerahmet/openai-whisper-asr-webservice:latest
-        env:
-          ASR_MODEL: base
-          ASR_ENGINE: openai_whisper
-        ports:
-          - 9000:9000
-        options: >-
-          --health-cmd "curl -f http://localhost:9000/docs || exit 1"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-          --health-start-period 20s
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pelikhan/action-genai-video-issue-analyzer@v0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+runs-on: ubuntu-latest
+services:
+  whisper:
+    image: onerahmet/openai-whisper-asr-webservice:latest
+    env:
+      ASR_MODEL: base
+      ASR_ENGINE: openai_whisper
+    ports:
+      - 9000:9000
+    options: >-
+      --health-cmd "curl -f http://localhost:9000/docs || exit 1"
+      --health-interval 10s
+      --health-timeout 5s
+      --health-retries 5
+      --health-start-period 20s
+steps:
+  - uses: actions/checkout@v4
+  - uses: pelikhan/action-genai-video-issue-analyzer@v0
+    with:
+      github_token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 ## Example
@@ -75,12 +78,12 @@ on:
   issues:
     types: [opened, edited]
 permissions:
-    contents: read
-    issues: write
-    models: read
+  contents: read
+  issues: write
+  models: read
 concurrency:
-    group: ${{ github.workflow }}-${{ github.event.issue.number }}
-    cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event.issue.number }}
+  cancel-in-progress: true
 jobs:
   genai-video-analyze:
     runs-on: ubuntu-latest
@@ -119,17 +122,17 @@ on:
   workflow_dispatch:
     inputs:
       video_url:
-        description: 'Direct video URL to analyze'
+        description: "Direct video URL to analyze"
         required: true
         type: string
       instructions:
-        description: 'Custom prompting instructions for the video'
+        description: "Custom prompting instructions for the video"
         required: false
-        default: 'Analyze the video and provide a summary of its content. Extract list of followup subissues if any. The transcript is your primary source of text information, ignore text in images.'
+        default: "Analyze the video and provide a summary of its content. Extract list of followup subissues if any. The transcript is your primary source of text information, ignore text in images."
         type: string
 permissions:
-    contents: read
-    models: read
+  contents: read
+  models: read
 jobs:
   genai-video-analyze:
     runs-on: ubuntu-latest
@@ -172,21 +175,21 @@ on:
   workflow_dispatch:
     inputs:
       video_url:
-        description: 'Direct video URL to analyze'
+        description: "Direct video URL to analyze"
         required: true
         type: string
       instructions:
-        description: 'Custom prompting instructions for the video'
+        description: "Custom prompting instructions for the video"
         required: false
-        default: 'Analyze the video and provide a summary of its content. Extract list of followup subissues if any. The transcript is your primary source of text information, ignore text in images.'
+        default: "Analyze the video and provide a summary of its content. Extract list of followup subissues if any. The transcript is your primary source of text information, ignore text in images."
         type: string
 permissions:
-    contents: read
-    issues: write
-    models: read
+  contents: read
+  issues: write
+  models: read
 concurrency:
-    group: ${{ github.workflow }}-${{ github.ref }}
-    cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   genai-video-analyze:
     runs-on: ubuntu-latest
@@ -243,16 +246,19 @@ npm run lint
 ```
 
 To typecheck the scripts, run:
+
 ```bash
 npm run typecheck
 ```
 
 To build the Docker image locally, run:
+
 ```bash
 npm run docker:build
 ```
 
 To run the action locally in Docker (build it first), use:
+
 ```bash
 npm run docker:start
 ```
