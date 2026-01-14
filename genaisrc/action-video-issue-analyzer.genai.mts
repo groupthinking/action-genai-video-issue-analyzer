@@ -136,7 +136,13 @@ async function processVideo(filename: string) {
       ctx.def("TRANSCRIPT", srt, { ignoreEmpty: true }); // ignore silent videos
       ctx.defImages(frames, { detail: "high", sliceSample: 40 }); // High detail for OCR
 
+      // Load Architectural Context from user prompts
+      ctx.def("ARCHITECTURAL_CONTEXT", env.files.find(f => f.filename.endsWith("architectural_context.md")), { ignoreEmpty: true });
+
       ctx.$`${finalInstructions}
+
+      Analyze the video specifically through the lens of the ARCHITECTURAL_CONTEXT provided.
+      Identify alignment with the "Principles of Structure and State" and "Agent Deployment Protocol".
 
       Context Items to lookout for:
       ${vars.items || "API endpoints, model capabilities"}
