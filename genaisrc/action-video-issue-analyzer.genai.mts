@@ -31,7 +31,7 @@ script({
   },
 });
 
-const { dbg, output, vars, files, host } = env;
+const { dbg, output, vars, files } = env;
 const { instructions, videoUrl } = vars as { instructions?: string; videoUrl?: string };
 
 // Use default instructions if not provided
@@ -172,7 +172,7 @@ async function processDirectVideoUrl(videoUrl: string) {
 
       try {
           // Download the video
-          await env.host.exec(`yt-dlp -f "best[ext=mp4]" -o "${tempFile}" "${videoUrl}"`);
+          await host.exec(`yt-dlp -f "best[ext=mp4]" -o "${tempFile}" "${videoUrl}"`);
           output.p(`Download complete: ${tempFile}`);
 
           await processVideo(tempFile);
