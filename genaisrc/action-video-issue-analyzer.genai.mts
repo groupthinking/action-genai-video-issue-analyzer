@@ -53,8 +53,9 @@ if (videoUrl) {
 const issue = await github.getIssue();
 if (issue) {
   const RX = /^https:\/\/github.com\/user-attachments\/assets\/.+$/gim;
+  const body = issue.body || ""; // Handle undefined body
   const assetLinks = Array.from(
-    new Set(Array.from(issue.body.matchAll(RX), (m) => m[0])),
+    new Set(Array.from(body.matchAll(RX), (m) => m[0])),
   );
   if (assetLinks.length === 0)
     cancel("No video assets found in the issue body, nothing to do.");
@@ -73,6 +74,10 @@ async function processAssetLink(assetLink: string) {
   output.heading(4, assetLink);
   dbg(assetLink);
   const downloadUrl = await github.resolveAssetUrl(assetLink);
+  if (!downloadUrl) {
+      output.error(`Could not resolve asset url for ${assetLink}`);
+      return;
+  }
   const res = await fetch(downloadUrl, { method: "GET" });
   const contentType = res.headers.get("content-type") || "";
   dbg(`download url: %s`, downloadUrl);
@@ -127,7 +132,8 @@ async function processVideo(filename: string) {
 
   const { text, error } = await runPrompt(
     (ctx) => {
-      ctx.def("TRANSCRIPT", transcript?.srt, { ignoreEmpty: true }); // ignore silent videos
+      const srt = transcript?.srt || "";
+      ctx.def("TRANSCRIPT", srt, { ignoreEmpty: true }); // ignore silent videos
       ctx.defImages(frames, { detail: "high", sliceSample: 40 }); // High detail for OCR
 
       ctx.$`${finalInstructions}
