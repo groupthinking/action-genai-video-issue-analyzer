@@ -179,7 +179,12 @@ async function processDirectVideoUrl(videoUrl: string) {
 
           // Clean up
           await fs.rm(tempFile, { force: true });
-      } catch (e) {
+      } catch (e: any) {
+          // Log the full error to the debug output for visibility
+          output.error(`yt-dlp failed: ${e.message}`);
+          if (e.stdout) dbg(`stdout: ${e.stdout}`);
+          if (e.stderr) dbg(`stderr: ${e.stderr}`);
+
           throw new Error(`Failed to download YouTube video: ${e.message}`);
       }
       return;
