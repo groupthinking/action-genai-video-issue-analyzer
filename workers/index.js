@@ -76,13 +76,12 @@ async function handleAnalyze(request, env, corsHeaders) {
   }
 
   const contentType = request.headers.get('content-type') || '';
-  let videoUrl, outputMode, items;
+  let videoUrl, outputMode;
 
   if (contentType.includes('application/json')) {
     const body = await request.json();
     videoUrl = body.videoUrl;
     outputMode = body.outputMode || 'agentic';
-    items = body.items || 'API endpoints, model capabilities';
   } else {
     return new Response(JSON.stringify({
       error: 'Invalid content type. Use application/json.'
