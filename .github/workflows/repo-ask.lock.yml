@@ -91,14 +91,8 @@ jobs:
       slash_command: ${{ needs.pre_activation.outputs.matched_command }}
       text: ${{ steps.compute-text.outputs.text }}
     steps:
-      - name: Checkout actions folder
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
-        with:
-          sparse-checkout: |
-            actions
-          persist-credentials: false
       - name: Setup Scripts
-        uses: ./actions/setup
+        uses: githubnext/gh-aw/actions/setup@main # v0.36.0
         with:
           destination: /opt/gh-aw/actions
       - name: Check workflow file timestamps
@@ -150,14 +144,8 @@ jobs:
       output: ${{ steps.collect_output.outputs.output }}
       output_types: ${{ steps.collect_output.outputs.output_types }}
     steps:
-      - name: Checkout actions folder
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
-        with:
-          sparse-checkout: |
-            actions
-          persist-credentials: false
       - name: Setup Scripts
-        uses: ./actions/setup
+        uses: githubnext/gh-aw/actions/setup@main # v0.36.0
         with:
           destination: /opt/gh-aw/actions
       - name: Checkout repository
@@ -190,23 +178,18 @@ jobs:
             setupGlobals(core, github, context, exec, io);
             const { main } = require('/opt/gh-aw/actions/checkout_pr_branch.cjs');
             await main();
-      - name: Validate COPILOT_GITHUB_TOKEN secret
-        run: /opt/gh-aw/actions/validate_multi_secret.sh COPILOT_GITHUB_TOKEN GitHub Copilot CLI https://githubnext.github.io/gh-aw/reference/engines/#github-copilot-default
+      - name: Validate CODEX_API_KEY or OPENAI_API_KEY secret
+        run: /opt/gh-aw/actions/validate_multi_secret.sh CODEX_API_KEY OPENAI_API_KEY Codex https://githubnext.github.io/gh-aw/reference/engines/#openai-codex
         env:
-          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
-      - name: Install GitHub Copilot CLI
-        run: |
-          # Download official Copilot CLI installer script
-          curl -fsSL https://raw.githubusercontent.com/github/copilot-cli/main/install.sh -o /tmp/copilot-install.sh
-          
-          # Execute the installer with the specified version
-          export VERSION=0.0.375 && sudo bash /tmp/copilot-install.sh
-          
-          # Cleanup
-          rm -f /tmp/copilot-install.sh
-          
-          # Verify installation
-          copilot --version
+          CODEX_API_KEY: ${{ secrets.CODEX_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      - name: Setup Node.js
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Install Codex
+        run: npm install -g --silent @openai/codex@0.79.0
       - name: Install awf binary
         run: |
           echo "Installing awf via installer script (requested version: v0.8.2)"
@@ -224,7 +207,7 @@ jobs:
             const determineAutomaticLockdown = require('/opt/gh-aw/actions/determine_automatic_lockdown.cjs');
             await determineAutomaticLockdown(github, context, core);
       - name: Downloading container images
-        run: bash /opt/gh-aw/actions/download_docker_images.sh ghcr.io/github/github-mcp-server:v0.27.0
+        run: bash /opt/gh-aw/actions/download_docker_images.sh ghcr.io/github/github-mcp-server:v0.27.0 mcp/fetch
       - name: Write Safe Outputs Config
         run: |
           mkdir -p /opt/gh-aw/safeoutputs
@@ -360,62 +343,49 @@ jobs:
           GITHUB_MCP_SERVER_TOKEN: ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN || secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
           mkdir -p /tmp/gh-aw/mcp-config
-          mkdir -p /home/runner/.copilot
-          cat > /home/runner/.copilot/mcp-config.json << EOF
-          {
-            "mcpServers": {
-              "github": {
-                "type": "local",
-                "command": "docker",
-                "args": [
-                  "run",
-                  "-i",
-                  "--rm",
-                  "-e",
-                  "GITHUB_PERSONAL_ACCESS_TOKEN",
-                  "-e",
-                  "GITHUB_READ_ONLY=1",
-                  "-e",
-                  "GITHUB_LOCKDOWN_MODE=$GITHUB_MCP_LOCKDOWN",
-                  "-e",
-                  "GITHUB_TOOLSETS=context,repos,issues,pull_requests",
-                  "ghcr.io/github/github-mcp-server:v0.27.0"
-                ],
-                "tools": ["*"],
-                "env": {
-                  "GITHUB_PERSONAL_ACCESS_TOKEN": "\${GITHUB_MCP_SERVER_TOKEN}"
-                }
-              },
-              "safeoutputs": {
-                "type": "local",
-                "command": "node",
-                "args": ["/opt/gh-aw/safeoutputs/mcp-server.cjs"],
-                "tools": ["*"],
-                "env": {
-                  "GH_AW_MCP_LOG_DIR": "\${GH_AW_MCP_LOG_DIR}",
-                  "GH_AW_SAFE_OUTPUTS": "\${GH_AW_SAFE_OUTPUTS}",
-                  "GH_AW_SAFE_OUTPUTS_CONFIG_PATH": "\${GH_AW_SAFE_OUTPUTS_CONFIG_PATH}",
-                  "GH_AW_SAFE_OUTPUTS_TOOLS_PATH": "\${GH_AW_SAFE_OUTPUTS_TOOLS_PATH}",
-                  "GH_AW_ASSETS_BRANCH": "\${GH_AW_ASSETS_BRANCH}",
-                  "GH_AW_ASSETS_MAX_SIZE_KB": "\${GH_AW_ASSETS_MAX_SIZE_KB}",
-                  "GH_AW_ASSETS_ALLOWED_EXTS": "\${GH_AW_ASSETS_ALLOWED_EXTS}",
-                  "GITHUB_REPOSITORY": "\${GITHUB_REPOSITORY}",
-                  "GITHUB_SERVER_URL": "\${GITHUB_SERVER_URL}",
-                  "GITHUB_SHA": "\${GITHUB_SHA}",
-                  "GITHUB_WORKSPACE": "\${GITHUB_WORKSPACE}",
-                  "DEFAULT_BRANCH": "\${DEFAULT_BRANCH}"
-                }
-              }
-            }
-          }
+          cat > /tmp/gh-aw/mcp-config/config.toml << EOF
+          [history]
+          persistence = "none"
+          
+          [shell_environment_policy]
+          inherit = "core"
+          include_only = ["CODEX_API_KEY", "GH_AW_ASSETS_ALLOWED_EXTS", "GH_AW_ASSETS_BRANCH", "GH_AW_ASSETS_MAX_SIZE_KB", "GH_AW_SAFE_OUTPUTS", "GITHUB_PERSONAL_ACCESS_TOKEN", "GITHUB_REPOSITORY", "GITHUB_SERVER_URL", "HOME", "OPENAI_API_KEY", "PATH"]
+          
+          [mcp_servers.github]
+          user_agent = "question-answering-researcher"
+          startup_timeout_sec = 120
+          tool_timeout_sec = 60
+          command = "docker"
+          args = [
+            "run",
+            "-i",
+            "--rm",
+            "-e",
+            "GITHUB_PERSONAL_ACCESS_TOKEN",
+            "-e",
+            "GITHUB_READ_ONLY=1",
+            "-e",
+            "GITHUB_TOOLSETS=context,repos,issues,pull_requests",
+            "ghcr.io/github/github-mcp-server:v0.27.0"
+          ]
+          env_vars = ["GITHUB_PERSONAL_ACCESS_TOKEN"]
+          
+          [mcp_servers.safeoutputs]
+          command = "node"
+          args = [
+            "/opt/gh-aw/safeoutputs/mcp-server.cjs",
+          ]
+          env_vars = ["GH_AW_MCP_LOG_DIR", "GH_AW_SAFE_OUTPUTS", "GH_AW_SAFE_OUTPUTS_CONFIG_PATH", "GH_AW_SAFE_OUTPUTS_TOOLS_PATH", "GH_AW_ASSETS_BRANCH", "GH_AW_ASSETS_MAX_SIZE_KB", "GH_AW_ASSETS_ALLOWED_EXTS", "GITHUB_REPOSITORY", "GITHUB_SERVER_URL", "GITHUB_SHA", "GITHUB_WORKSPACE", "DEFAULT_BRANCH"]
+          
+          [mcp_servers."web-fetch"]
+          command = "docker"
+          args = [
+            "run",
+            "-i",
+            "--rm",
+            "mcp/fetch"
+          ]
           EOF
-          echo "-------START MCP CONFIG-----------"
-          cat /home/runner/.copilot/mcp-config.json
-          echo "-------END MCP CONFIG-----------"
-          echo "-------/home/runner/.copilot-----------"
-          find /home/runner/.copilot
-          echo "HOME: $HOME"
-          echo "GITHUB_COPILOT_CLI_MODE: $GITHUB_COPILOT_CLI_MODE"
       - name: Generate agentic run info
         id: generate_aw_info
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
@@ -424,14 +394,14 @@ jobs:
             const fs = require('fs');
             
             const awInfo = {
-              engine_id: "copilot",
-              engine_name: "GitHub Copilot CLI",
-              model: process.env.GH_AW_MODEL_AGENT_COPILOT || "",
+              engine_id: "codex",
+              engine_name: "Codex",
+              model: process.env.GH_AW_MODEL_AGENT_CODEX || "",
               version: "",
-              agent_version: "0.0.375",
+              agent_version: "0.79.0",
               cli_version: "v0.36.0",
               workflow_name: "Question Answering Researcher",
-              experimental: false,
+              experimental: true,
               supports_tools_allowlist: true,
               supports_http_transport: true,
               run_id: context.runId,
@@ -658,37 +628,26 @@ jobs:
           set -o pipefail
           sudo -E awf --env-all --container-workdir "${GITHUB_WORKSPACE}" --mount /tmp:/tmp:rw --mount "${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE}:rw" --mount /usr/bin/date:/usr/bin/date:ro --mount /usr/bin/gh:/usr/bin/gh:ro --mount /usr/bin/yq:/usr/bin/yq:ro --mount /usr/local/bin/copilot:/usr/local/bin/copilot:ro --mount /home/runner/.copilot:/home/runner/.copilot:rw --mount /opt/gh-aw:/opt/gh-aw:ro --allow-domains api.business.githubcopilot.com,api.enterprise.githubcopilot.com,api.github.com,api.githubcopilot.com,api.individual.githubcopilot.com,github.com,host.docker.internal,raw.githubusercontent.com,registry.npmjs.org --log-level info --proxy-logs-dir /tmp/gh-aw/sandbox/firewall/logs --image-tag 0.8.2 \
             -- /usr/local/bin/copilot --add-dir /tmp/gh-aw/ --log-level all --log-dir /tmp/gh-aw/sandbox/agent/logs/ --add-dir "${GITHUB_WORKSPACE}" --disable-builtin-mcps --allow-tool github --allow-tool safeoutputs --allow-tool 'shell(cat)' --allow-tool 'shell(date)' --allow-tool 'shell(echo)' --allow-tool 'shell(grep)' --allow-tool 'shell(head)' --allow-tool 'shell(ls)' --allow-tool 'shell(pwd)' --allow-tool 'shell(sort)' --allow-tool 'shell(tail)' --allow-tool 'shell(uniq)' --allow-tool 'shell(wc)' --allow-tool 'shell(yq)' --allow-tool web_fetch --allow-tool web_search --allow-tool write --allow-all-paths --share /tmp/gh-aw/sandbox/agent/logs/conversation.md --prompt "$(cat /tmp/gh-aw/aw-prompts/prompt.txt)"${GH_AW_MODEL_AGENT_COPILOT:+ --model "$GH_AW_MODEL_AGENT_COPILOT"} \
+      - name: Run Codex
+        run: |
+          set -o pipefail
+          INSTRUCTION="$(cat "$GH_AW_PROMPT")"
+          mkdir -p "$CODEX_HOME/logs"
+          sudo -E awf --env-all --container-workdir "${GITHUB_WORKSPACE}" --mount /tmp:/tmp:rw --mount "${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE}:rw" --mount /opt/hostedtoolcache/node:/opt/hostedtoolcache/node:ro --mount /opt/gh-aw:/opt/gh-aw:ro --allow-domains api.openai.com,openai.com --log-level info --proxy-logs-dir /tmp/gh-aw/sandbox/firewall/logs --image-tag 0.8.2 \
+            -- NODE_BIN_PATH="$(find /opt/hostedtoolcache/node -maxdepth 1 -type d | head -1 | xargs basename)/x64/bin" && export PATH="/opt/hostedtoolcache/node/$NODE_BIN_PATH:$PATH" && codex ${GH_AW_MODEL_AGENT_CODEX:+-c model="$GH_AW_MODEL_AGENT_CODEX" }exec--search  --full-auto --skip-git-repo-check "$INSTRUCTION" \
             2>&1 | tee /tmp/gh-aw/agent-stdio.log
         env:
-          COPILOT_AGENT_RUNNER_TYPE: STANDALONE
-          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
-          GH_AW_MCP_CONFIG: /home/runner/.copilot/mcp-config.json
-          GH_AW_MODEL_AGENT_COPILOT: ${{ vars.GH_AW_MODEL_AGENT_COPILOT || '' }}
+          CODEX_API_KEY: ${{ secrets.CODEX_API_KEY || secrets.OPENAI_API_KEY }}
+          CODEX_HOME: /tmp/gh-aw/mcp-config
+          GH_AW_GITHUB_TOKEN: ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN || secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+          GH_AW_MCP_CONFIG: /tmp/gh-aw/mcp-config/config.toml
+          GH_AW_MODEL_AGENT_CODEX: ${{ vars.GH_AW_MODEL_AGENT_CODEX || '' }}
           GH_AW_PROMPT: /tmp/gh-aw/aw-prompts/prompt.txt
           GH_AW_SAFE_OUTPUTS: ${{ env.GH_AW_SAFE_OUTPUTS }}
-          GITHUB_HEAD_REF: ${{ github.head_ref }}
-          GITHUB_MCP_SERVER_TOKEN: ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN || secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
-          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_PERSONAL_ACCESS_TOKEN: ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN || secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           GITHUB_STEP_SUMMARY: ${{ env.GITHUB_STEP_SUMMARY }}
-          GITHUB_WORKSPACE: ${{ github.workspace }}
-          XDG_CONFIG_HOME: /home/runner
-      - name: Copy Copilot session state files to logs
-        if: always()
-        continue-on-error: true
-        run: |
-          # Copy Copilot session state files to logs folder for artifact collection
-          # This ensures they are in /tmp/gh-aw/ where secret redaction can scan them
-          SESSION_STATE_DIR="$HOME/.copilot/session-state"
-          LOGS_DIR="/tmp/gh-aw/sandbox/agent/logs"
-          
-          if [ -d "$SESSION_STATE_DIR" ]; then
-            echo "Copying Copilot session state files from $SESSION_STATE_DIR to $LOGS_DIR"
-            mkdir -p "$LOGS_DIR"
-            cp -v "$SESSION_STATE_DIR"/*.jsonl "$LOGS_DIR/" 2>/dev/null || true
-            echo "Session state files copied successfully"
-          else
-            echo "No session-state directory found at $SESSION_STATE_DIR"
-          fi
+          OPENAI_API_KEY: ${{ secrets.CODEX_API_KEY || secrets.OPENAI_API_KEY }}
+          RUST_LOG: trace,hyper_util=info,mio=info,reqwest=info,os_info=info,codex_otel=warn,codex_core=debug,ocodex_exec=debug
       - name: Redact secrets in logs
         if: always()
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
@@ -699,11 +658,12 @@ jobs:
             const { main } = require('/opt/gh-aw/actions/redact_secrets.cjs');
             await main();
         env:
-          GH_AW_SECRET_NAMES: 'COPILOT_GITHUB_TOKEN,GH_AW_GITHUB_MCP_SERVER_TOKEN,GH_AW_GITHUB_TOKEN,GITHUB_TOKEN'
-          SECRET_COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+          GH_AW_SECRET_NAMES: 'CODEX_API_KEY,GH_AW_GITHUB_MCP_SERVER_TOKEN,GH_AW_GITHUB_TOKEN,GITHUB_TOKEN,OPENAI_API_KEY'
+          SECRET_CODEX_API_KEY: ${{ secrets.CODEX_API_KEY }}
           SECRET_GH_AW_GITHUB_MCP_SERVER_TOKEN: ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN }}
           SECRET_GH_AW_GITHUB_TOKEN: ${{ secrets.GH_AW_GITHUB_TOKEN }}
           SECRET_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SECRET_OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       - name: Upload Safe Outputs
         if: always()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
@@ -716,7 +676,7 @@ jobs:
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         env:
           GH_AW_SAFE_OUTPUTS: ${{ env.GH_AW_SAFE_OUTPUTS }}
-          GH_AW_ALLOWED_DOMAINS: "api.business.githubcopilot.com,api.enterprise.githubcopilot.com,api.github.com,api.githubcopilot.com,api.individual.githubcopilot.com,github.com,host.docker.internal,raw.githubusercontent.com,registry.npmjs.org"
+          GH_AW_ALLOWED_DOMAINS: "api.openai.com,openai.com"
           GITHUB_SERVER_URL: ${{ github.server_url }}
           GITHUB_API_URL: ${{ github.api_url }}
           GH_AW_COMMAND: repo-ask
@@ -738,19 +698,19 @@ jobs:
         with:
           name: agent_outputs
           path: |
-            /tmp/gh-aw/sandbox/agent/logs/
+            /tmp/gh-aw/mcp-config/logs/
             /tmp/gh-aw/redacted-urls.log
           if-no-files-found: ignore
       - name: Parse agent logs for step summary
         if: always()
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         env:
-          GH_AW_AGENT_OUTPUT: /tmp/gh-aw/sandbox/agent/logs/
+          GH_AW_AGENT_OUTPUT: /tmp/gh-aw/agent-stdio.log
         with:
           script: |
             const { setupGlobals } = require('/opt/gh-aw/actions/setup_globals.cjs');
             setupGlobals(core, github, context, exec, io);
-            const { main } = require('/opt/gh-aw/actions/parse_copilot_log.cjs');
+            const { main } = require('/opt/gh-aw/actions/parse_codex_log.cjs');
             await main();
       - name: Firewall summary
         if: always()
@@ -790,14 +750,8 @@ jobs:
       tools_reported: ${{ steps.missing_tool.outputs.tools_reported }}
       total_count: ${{ steps.missing_tool.outputs.total_count }}
     steps:
-      - name: Checkout actions folder
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
-        with:
-          sparse-checkout: |
-            actions
-          persist-credentials: false
       - name: Setup Scripts
-        uses: ./actions/setup
+        uses: githubnext/gh-aw/actions/setup@main # v0.36.0
         with:
           destination: /opt/gh-aw/actions
       - name: Debug job inputs
@@ -881,14 +835,8 @@ jobs:
     outputs:
       success: ${{ steps.parse_results.outputs.success }}
     steps:
-      - name: Checkout actions folder
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
-        with:
-          sparse-checkout: |
-            actions
-          persist-credentials: false
       - name: Setup Scripts
-        uses: ./actions/setup
+        uses: githubnext/gh-aw/actions/setup@main # v0.36.0
         with:
           destination: /opt/gh-aw/actions
       - name: Download agent artifacts
@@ -966,52 +914,35 @@ jobs:
         run: |
           mkdir -p /tmp/gh-aw/threat-detection
           touch /tmp/gh-aw/threat-detection/detection.log
-      - name: Validate COPILOT_GITHUB_TOKEN secret
-        run: /opt/gh-aw/actions/validate_multi_secret.sh COPILOT_GITHUB_TOKEN GitHub Copilot CLI https://githubnext.github.io/gh-aw/reference/engines/#github-copilot-default
+      - name: Validate CODEX_API_KEY or OPENAI_API_KEY secret
+        run: /opt/gh-aw/actions/validate_multi_secret.sh CODEX_API_KEY OPENAI_API_KEY Codex https://githubnext.github.io/gh-aw/reference/engines/#openai-codex
         env:
-          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
-      - name: Install GitHub Copilot CLI
-        run: |
-          # Download official Copilot CLI installer script
-          curl -fsSL https://raw.githubusercontent.com/github/copilot-cli/main/install.sh -o /tmp/copilot-install.sh
-          
-          # Execute the installer with the specified version
-          export VERSION=0.0.375 && sudo bash /tmp/copilot-install.sh
-          
-          # Cleanup
-          rm -f /tmp/copilot-install.sh
-          
-          # Verify installation
-          copilot --version
-      - name: Execute GitHub Copilot CLI
-        id: agentic_execution
-        # Copilot CLI tool arguments (sorted):
-        # --allow-tool shell(cat)
-        # --allow-tool shell(grep)
-        # --allow-tool shell(head)
-        # --allow-tool shell(jq)
-        # --allow-tool shell(ls)
-        # --allow-tool shell(tail)
-        # --allow-tool shell(wc)
-        timeout-minutes: 20
+          CODEX_API_KEY: ${{ secrets.CODEX_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      - name: Setup Node.js
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Install Codex
+        run: npm install -g --silent @openai/codex@0.79.0
+      - name: Run Codex
         run: |
           set -o pipefail
-          COPILOT_CLI_INSTRUCTION="$(cat /tmp/gh-aw/aw-prompts/prompt.txt)"
-          mkdir -p /tmp/
-          mkdir -p /tmp/gh-aw/
-          mkdir -p /tmp/gh-aw/agent/
-          mkdir -p /tmp/gh-aw/sandbox/agent/logs/
-          copilot --add-dir /tmp/ --add-dir /tmp/gh-aw/ --add-dir /tmp/gh-aw/agent/ --log-level all --log-dir /tmp/gh-aw/sandbox/agent/logs/ --disable-builtin-mcps --allow-tool 'shell(cat)' --allow-tool 'shell(grep)' --allow-tool 'shell(head)' --allow-tool 'shell(jq)' --allow-tool 'shell(ls)' --allow-tool 'shell(tail)' --allow-tool 'shell(wc)' --share /tmp/gh-aw/sandbox/agent/logs/conversation.md --prompt "$COPILOT_CLI_INSTRUCTION"${GH_AW_MODEL_DETECTION_COPILOT:+ --model "$GH_AW_MODEL_DETECTION_COPILOT"} 2>&1 | tee /tmp/gh-aw/threat-detection/detection.log
+          INSTRUCTION="$(cat "$GH_AW_PROMPT")"
+          mkdir -p "$CODEX_HOME/logs"
+          codex ${GH_AW_MODEL_DETECTION_CODEX:+-c model="$GH_AW_MODEL_DETECTION_CODEX" }exec --full-auto --skip-git-repo-check "$INSTRUCTION" 2>&1 | tee /tmp/gh-aw/threat-detection/detection.log
         env:
-          COPILOT_AGENT_RUNNER_TYPE: STANDALONE
-          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
-          GH_AW_MODEL_DETECTION_COPILOT: ${{ vars.GH_AW_MODEL_DETECTION_COPILOT || '' }}
+          CODEX_API_KEY: ${{ secrets.CODEX_API_KEY || secrets.OPENAI_API_KEY }}
+          CODEX_HOME: /tmp/gh-aw/mcp-config
+          GH_AW_GITHUB_TOKEN: ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN || secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+          GH_AW_MCP_CONFIG: /tmp/gh-aw/mcp-config/config.toml
+          GH_AW_MODEL_DETECTION_CODEX: ${{ vars.GH_AW_MODEL_DETECTION_CODEX || '' }}
           GH_AW_PROMPT: /tmp/gh-aw/aw-prompts/prompt.txt
-          GITHUB_HEAD_REF: ${{ github.head_ref }}
-          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_PERSONAL_ACCESS_TOKEN: ${{ secrets.GH_AW_GITHUB_MCP_SERVER_TOKEN || secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           GITHUB_STEP_SUMMARY: ${{ env.GITHUB_STEP_SUMMARY }}
-          GITHUB_WORKSPACE: ${{ github.workspace }}
-          XDG_CONFIG_HOME: /home/runner
+          OPENAI_API_KEY: ${{ secrets.CODEX_API_KEY || secrets.OPENAI_API_KEY }}
+          RUST_LOG: trace,hyper_util=info,mio=info,reqwest=info,os_info=info,codex_otel=warn,codex_core=debug,ocodex_exec=debug
       - name: Parse threat detection results
         id: parse_results
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
@@ -1043,20 +974,12 @@ jobs:
       (github.event_name == 'discussion_comment') &&
       (contains(github.event.comment.body, '/repo-ask'))
     runs-on: ubuntu-slim
-    permissions:
-      contents: read
     outputs:
       activated: ${{ ((steps.check_membership.outputs.is_team_member == 'true') && (steps.check_stop_time.outputs.stop_time_ok == 'true')) && (steps.check_command_position.outputs.command_position_ok == 'true') }}
       matched_command: ${{ steps.check_command_position.outputs.matched_command }}
     steps:
-      - name: Checkout actions folder
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
-        with:
-          sparse-checkout: |
-            actions
-          persist-credentials: false
       - name: Setup Scripts
-        uses: ./actions/setup
+        uses: githubnext/gh-aw/actions/setup@main # v0.36.0
         with:
           destination: /opt/gh-aw/actions
       - name: Check team membership for command workflow
@@ -1108,7 +1031,6 @@ jobs:
       pull-requests: write
     timeout-minutes: 15
     env:
-      GH_AW_ENGINE_ID: "copilot"
       GH_AW_WORKFLOW_ID: "repo-ask"
       GH_AW_WORKFLOW_NAME: "Question Answering Researcher"
       GH_AW_WORKFLOW_SOURCE: "githubnext/agentics/workflows/repo-ask.md@1ef9dbe65e8265b57fe2ffa76098457cf3ae2b32"
@@ -1117,14 +1039,8 @@ jobs:
       process_safe_outputs_processed_count: ${{ steps.process_safe_outputs.outputs.processed_count }}
       process_safe_outputs_temporary_id_map: ${{ steps.process_safe_outputs.outputs.temporary_id_map }}
     steps:
-      - name: Checkout actions folder
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
-        with:
-          sparse-checkout: |
-            actions
-          persist-credentials: false
       - name: Setup Scripts
-        uses: ./actions/setup
+        uses: githubnext/gh-aw/actions/setup@main # v0.36.0
         with:
           destination: /opt/gh-aw/actions
       - name: Download agent output artifact
