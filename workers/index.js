@@ -24,7 +24,6 @@ export default {
     try {
       // Route handling
       switch (url.pathname) {
-        case '/':
         case '/health':
           return new Response(JSON.stringify({
             status: 'healthy',
