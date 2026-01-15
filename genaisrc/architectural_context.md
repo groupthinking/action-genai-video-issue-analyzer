@@ -382,12 +382,6 @@ Offer a “Continue tomorrow” secondary option.
 	⁃	The Cox family refurbished the building.
 	⁃	Post-refurbishment, the venue was reopened as The Liberty Opry.
 	⁃	The Liberty Opry is a live, Branson-style musical entertainment venue.
-	⁃	The Park Theater was constructed and opened in 1938.
-	⁃	It functioned as a movie house for many years before closing.
-	⁃	After a period of sitting idle, the Cox family purchased the theatre in 1993.
-	⁃	The Cox family refurbished the building.
-	⁃	Post-refurbishment, the venue was reopened as The Liberty Opry.
-	⁃	The Liberty Opry is a live, Branson-style musical entertainment venue.
 	⁃	Type of action or input (e.g., VAA & TA Input, PEA Prompt Generation).
 	⁃	Description of the step.
 	⁃	Specific type of detail (e.g., User Input, AI Name Suggestion, PEA Output, CSA Output).
