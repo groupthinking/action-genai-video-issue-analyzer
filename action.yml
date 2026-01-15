@@ -1,4 +1,4 @@
-name: Action-Genai-Video-Issue-Analyzer
+name: GenAI Video Issue Analyzer
 description: Analyzes videos uploaded as assets in GitHub issues or provided via direct URL.
 inputs:
   instructions:

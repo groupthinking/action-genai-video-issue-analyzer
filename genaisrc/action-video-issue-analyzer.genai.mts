@@ -1,5 +1,5 @@
 script({
-  title: "Analyzes videos upload as assets",
+  title: "GenAI Video Issue Analyzer",
   description: "Analyzes videos uploaded as assets in GitHub issues or provided via direct URL.",
   accept: ".mp4",
   parameters: {

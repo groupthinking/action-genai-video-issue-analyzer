@@ -1,4 +1,5 @@
 {
+  "name": "video-issue-analyzer",
   "private": true,
   "version": "0.0.5",
   "dependencies": {
