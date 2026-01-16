@@ -1,24 +1,45 @@
 {
+  "name": "video-issue-analyzer",
   "private": true,
   "version": "0.0.5",
   "dependencies": {
-    "genaiscript": "2.3.13"
+    "genaiscript": "2.3.13",
+    "next": "^16.1.2",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
   },
   "scripts": {
+    "next:dev": "next dev --turbopack",
+    "next:build": "next build",
+    "next:start": "next start",
+    "next:lint": "next lint",
     "upgrade": "npx -y npm-check-updates -u && npm install && npm run fix",
     "docker:build": "docker build -t pelikhan-action-genai-video-issue-analyzer .",
     "docker:start": "docker run -e GITHUB_TOKEN pelikhan-action-genai-video-issue-analyzer",
     "whisperasr:start": "docker run -d -p 9000:9000 -e ASR_MODEL=base -e ASR_ENGINE=openai_whisper onerahmet/openai-whisper-asr-webservice:latest --network host",
     "whisperasr:ping": "curl -I http://whisper:9000/docs",
-    "lint": "npx --yes prettier --write genaisrc/",
+    "lint": "npx --yes prettier --write genaisrc/ src/",
     "fix": "genaiscript scripts fix",
-    "typecheck": "genaiscript scripts compile",
+    "typecheck": "genaiscript scripts compile && tsc --noEmit",
     "configure": "genaiscript configure action action-video-issue-analyzer --event issue",
     "test": "echo 'No tests defined.'",
     "action": "genaiscript run action-video-issue-analyzer --github-workspace --pull-request-comment --no-run-trace --out-output $GITHUB_STEP_SUMMARY",
     "start": "WHISPERASR_API_BASE=http://whisper:9000 npm run action",
-    "dev": "clear && GITHUB_STEP_SUMMARY=output.md GITHUB_ISSUE=1 DEBUG=script npm run action",
+    "dev": "npm run next:dev",
+    "build": "npm run next:build",
     "serve": "npm run whisperasr:start && genaiscript serve",
     "release": "sh release.sh"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
+    "@types/node": "^25.0.9",
+    "@types/react": "^19.2.8",
+    "@types/react-dom": "^19.2.3",
+    "autoprefixer": "^10.4.23",
+    "eslint": "^9.39.2",
+    "eslint-config-next": "^16.1.2",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18",
+    "typescript": "^5.9.3"
   }
 }

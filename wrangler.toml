@@ -1,0 +1,35 @@
+# Cloudflare Workers Configuration for Video Analyzer
+# Deploys to uvai.io
+
+name = "video-action-analyzer"
+main = "workers/index.js"
+compatibility_date = "2024-12-01"
+
+# Production routes
+routes = [
+  { pattern = "uvai.io/*", zone_name = "uvai.io" },
+  { pattern = "www.uvai.io/*", zone_name = "uvai.io" }
+]
+
+# Development settings
+[vars]
+ENVIRONMENT = "production"
+
+# KV namespace for caching transcripts and analysis results
+# [[kv_namespaces]]
+# binding = "VIDEO_CACHE"
+# id = "YOUR_KV_NAMESPACE_ID"
+
+# Secrets (set via wrangler secret put)
+# - GOOGLE_API_KEY: Gemini API key for analysis
+# - OPENAI_API_KEY: OpenAI API key for Whisper transcription
+
+# Note: No build step needed - workers/index.js is plain JavaScript
+
+# Staging environment
+[env.staging]
+name = "video-action-analyzer-staging"
+routes = [
+  { pattern = "staging.uvai.io/*", zone_name = "uvai.io" }
+]
+vars = { ENVIRONMENT = "staging" }
