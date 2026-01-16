@@ -6,3 +6,4 @@ node_modules
 ffmpeg*
 ffprobe*
 output.mddebug_test.mp4
+.next/
