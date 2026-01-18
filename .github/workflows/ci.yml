@@ -1,4 +1,4 @@
-name: Continuous Integration
+name: GenAI Video Analyzer CI
 on:
   push:
     branches:
@@ -11,19 +11,25 @@ permissions:
   issues: write
   models: read
 concurrency:
-    group: ${{ github.workflow }}-${{ github.ref }}
-    cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   test:
+    name: Unit Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           cache: npm
-      - run: npm ci
-      - run: npm test
+      - name: Install Dependencies
+        run: npm ci
+      - name: Run Tests
+        run: npm test
   test-action:
+    name: Action Integration Test
     needs: test
     runs-on: ubuntu-latest
     services:
@@ -41,14 +47,17 @@ jobs:
           --health-retries 5
           --health-start-period 20s
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/cache@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Restore GenAIScript Cache
+        uses: actions/cache@v4
         with:
           path: .genaiscript/cache/**
           key: genaiscript-${{ github.run_id }}
           restore-keys: |
             genaiscript-
-      - uses: ./
+      - name: Run GenAI Video Issue Analyzer
+        uses: ./
         with:
           github_issue: "1"
           github_token: ${{ secrets.GITHUB_TOKEN }}
