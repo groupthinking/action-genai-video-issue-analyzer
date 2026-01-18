@@ -332,7 +332,11 @@ ${vars.items || "API endpoints, model capabilities"}`;
       ctx.defImages(frames, { detail: "high", sliceSample: 40 }); // High detail for OCR
 
       // Load Architectural Context from user prompts
-      ctx.def("ARCHITECTURAL_CONTEXT", env.files.find(f => f.filename.endsWith("architectural_context.md")), { ignoreEmpty: true });
+      // Load Architectural Context from user prompts with null guard
+      const archContextFile = env.files.find(f => f.filename.endsWith("architectural_context.md"));
+      if (archContextFile) {
+        ctx.def("ARCHITECTURAL_CONTEXT", archContextFile, { ignoreEmpty: true });
+      }
 
       ctx.$`${isAgenticMode ? agenticPrompt : summaryPrompt}`.role("system");
     },
@@ -340,7 +344,7 @@ ${vars.items || "API endpoints, model capabilities"}`;
   );
 
   if (error) {
-    output.error(error?.message);
+    output.error(error?.message || "Unknown error occurred");
   } else if (isAgenticMode && json) {
     // Format agentic output beautifully
     output.heading(3, "🎯 Agentic Analysis Results");
