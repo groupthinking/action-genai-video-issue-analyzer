@@ -1,7 +1,7 @@
-import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
+import { GoogleGenerativeAI, SchemaType, ResponseSchema } from "@google/generative-ai";
 
 // Agentic Output Schema - matches the GenAIScript schema
-const agenticOutputSchema = {
+const agenticOutputSchema: ResponseSchema = {
   type: SchemaType.OBJECT,
   properties: {
     summary: {
