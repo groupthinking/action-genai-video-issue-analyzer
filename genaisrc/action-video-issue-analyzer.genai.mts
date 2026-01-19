@@ -179,7 +179,6 @@ const { dbg, output, vars, files } = env;
 const { instructions, videoUrl } = vars as { instructions?: string; videoUrl?: string };
 
 // Use default instructions if not provided
-// Use default instructions if not provided
 const finalInstructions = instructions ||
   `Watch this video carefully. I need a technical breakdown.
 1. Extract every API endpoint mentioned or shown on screen.
@@ -245,13 +244,13 @@ async function processAssetLink(assetLink: string) {
 }
 
 async function processVideo(filename: string) {
-  // Gemini 2.0 Flash handles video+audio together natively
-  // Use Gemini for transcription since it's our primary model
+  // Gemini handles video+audio together natively
+  // Use Gemini 1.5 Flash for transcription as it is stable for the transcription tool
   let transcript: Awaited<ReturnType<typeof transcribe>> | undefined;
 
   try {
     transcript = await transcribe(filename, {
-      model: "google:gemini-2.0-flash-exp",
+      model: "google:gemini-1.5-flash",
       cache: true,
     });
     output.p(`✅ Transcription completed with Gemini.`);
@@ -414,7 +413,7 @@ async function processDirectVideoUrl(videoUrl: string) {
 
           // Download using yt-dlp with --print filename to capture the actual output path
           // This avoids shell escaping issues with host.exec
-          const downloadResult = await host.exec(`yt-dlp -f "best" -o "${tempTemplate}" "${videoUrl}" --no-playlist --print after_move:filepath`);
+          const downloadResult = await host.exec(`yt-dlp --js-runtimes node -f "best" -o "${tempTemplate}" "${videoUrl}" --no-playlist --print after_move:filepath`);
 
           // The printed filepath is in stdout
           const downloadedPath = (downloadResult.stdout || "")
