@@ -69,10 +69,11 @@ describe('VideoInput Component', () => {
     const input = screen.getByLabelText('Video URL');
     const button = screen.getByRole('button', { name: /analyze video/i });
 
-    fireEvent.change(input, { target: { value: 'invalid-url' } });
+    // Use a valid URL format that's not a video URL (passes HTML5 url validation, fails video pattern)
+    fireEvent.change(input, { target: { value: 'https://example.com/not-a-video' } });
     fireEvent.click(button);
 
-    // The actual error message from VideoInput.tsx
+    // The error message from VideoInput.tsx for invalid video URLs
     expect(screen.getByText(/please enter a valid youtube url or direct video file url/i)).toBeInTheDocument();
     expect(mockOnSubmit).not.toHaveBeenCalled();
   });
