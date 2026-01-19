@@ -26,8 +26,14 @@ jobs:
           cache: npm
       - name: Install Dependencies
         run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
       - name: Run Tests
         run: npm test
+      - name: Build
+        run: npm run build
   test-action:
     name: Action Integration Test
     needs: test
