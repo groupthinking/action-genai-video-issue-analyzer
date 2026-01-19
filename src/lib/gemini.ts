@@ -201,27 +201,37 @@ export async function analyzeVideoUrl(
 
   const contextItems = items || "API endpoints, model capabilities, technical implementations";
 
+  // For web-based analysis, we use text-based URL analysis
+  // Note: Direct video file access requires the File API upload flow
+  // which is handled by GenAIScript for GitHub Actions
   const prompt = `${AGENTIC_PROMPT}
 
 ## Context Items to Extract
 ${contextItems}
 
 ## Video to Analyze
-Please analyze the video at this URL: ${videoUrl}
+Please analyze this video: ${videoUrl}
 
-Watch the entire video and extract all relevant technical information, code snippets, API endpoints, and actionable workflows.`;
+This is a video URL that may be:
+1. A YouTube video (youtube.com, youtu.be)
+2. A direct video file (.mp4, .webm, .mov)
+
+For YouTube videos, use your knowledge base to provide relevant analysis based on:
+- The video ID extracted from the URL
+- Any context you have about the channel or content type
+- Common patterns for technical/tutorial videos
+
+Provide comprehensive analysis with:
+- Summary with title and main topic
+- Extracted API endpoints if discussed
+- Extracted capabilities demonstrated
+- Actionable implementation insights
+- Step-by-step workflow to replicate
+- Code artifacts shown or implied
+- Key learnings for project integration`;
 
   try {
-    const result = await model.generateContent([
-      { text: prompt },
-      {
-        fileData: {
-          mimeType: "video/mp4",
-          fileUri: videoUrl,
-        },
-      },
-    ]);
-
+    const result = await model.generateContent([{ text: prompt }]);
     const response = result.response;
     const text = response.text();
 
@@ -229,27 +239,31 @@ Watch the entire video and extract all relevant technical information, code snip
     const analysis = JSON.parse(text) as AgenticOutput;
     return analysis;
   } catch (error) {
-    // If direct URL doesn't work, try with just text analysis request
-    console.error("Video analysis error, trying text-based approach:", error);
+    console.error("Video analysis error:", error);
 
-    const textResult = await model.generateContent([
-      {
-        text: `${AGENTIC_PROMPT}
-
-## Context Items to Extract
-${contextItems}
-
-## Video URL
-${videoUrl}
-
-Since I cannot directly access this video, please analyze based on the URL pattern and any context you can infer. If this is a YouTube URL, extract the video ID and provide analysis based on available information.
-
-Note: For full video analysis, ensure the video is accessible and provides proper CORS headers, or use the GenAIScript CLI for YouTube videos.`,
+    // Return a structured error response
+    return {
+      summary: {
+        title: "Video Analysis Error",
+        description: `Unable to analyze video at ${videoUrl}. For full video analysis including downloading and transcription, use the GenAIScript CLI or GitHub Action.`,
+        primaryTopic: "Error",
       },
-    ]);
-
-    const fallbackText = textResult.response.text();
-    return JSON.parse(fallbackText) as AgenticOutput;
+      actionableInsights: [
+        {
+          insight: "Use GenAIScript for complete video analysis",
+          priority: "high",
+          implementation: "Run: npx genaiscript run action-video-issue-analyzer --video-url YOUR_URL",
+        },
+      ],
+      generatedWorkflow: {
+        name: "Alternative Video Analysis Flow",
+        steps: [
+          { stepNumber: 1, action: "Clone the repository", command: "git clone https://github.com/groupthinking/action-genai-video-issue-analyzer" },
+          { stepNumber: 2, action: "Set up environment", command: "cp .env.example .env && vim .env  # Add GOOGLE_API_KEY" },
+          { stepNumber: 3, action: "Run video analysis", command: "npx genaiscript run action-video-issue-analyzer" },
+        ],
+      },
+    };
   }
 }
 
