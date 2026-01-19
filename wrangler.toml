@@ -16,9 +16,9 @@ routes = [
 ENVIRONMENT = "production"
 
 # KV namespace for caching transcripts and analysis results
-# [[kv_namespaces]]
-# binding = "VIDEO_CACHE"
-# id = "YOUR_KV_NAMESPACE_ID"
+[[kv_namespaces]]
+binding = "VIDEO_CACHE"
+id = "2014d27fdbb9439daebcd83fcc7e1b61"
 
 # Secrets (set via wrangler secret put)
 # - GOOGLE_API_KEY: Gemini API key for analysis

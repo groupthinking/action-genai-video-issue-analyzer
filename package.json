@@ -23,24 +23,33 @@
     "fix": "genaiscript scripts fix",
     "typecheck": "genaiscript scripts compile && tsc --noEmit",
     "configure": "genaiscript configure action action-video-issue-analyzer --event issue",
-    "test": "echo 'No tests defined.'",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "action": "genaiscript run action-video-issue-analyzer --github-workspace --pull-request-comment --no-run-trace --out-output $GITHUB_STEP_SUMMARY",
     "start": "WHISPERASR_API_BASE=http://whisper:9000 npm run action",
     "dev": "npm run next:dev",
     "build": "npm run next:build",
     "serve": "npm run whisperasr:start && genaiscript serve",
-    "release": "sh release.sh"
+    "release": "sh release.sh",
+    "deploy": "npx wrangler deploy",
+    "deploy:staging": "npx wrangler deploy --env staging"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.18",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
     "@types/node": "^25.0.9",
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^4.5.2",
     "autoprefixer": "^10.4.23",
     "eslint": "^9.39.2",
     "eslint-config-next": "^16.1.2",
+    "jsdom": "^26.1.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.18",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^3.1.3"
   }
 }
