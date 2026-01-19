@@ -46,7 +46,7 @@ The action outputs the analysis results to the GitHub Step Summary for easy view
 
 - **Data Flow Direction**:
 
-  ```
+  ```text
   Video Input → GenAIScript/Gemini Analysis → AgenticOutput Schema → Multi-Format Delivery
        ↓                    ↓                        ↓
   (YouTube/MP4)    (Transcription + Frames)   (JSON/Markdown/UI)
@@ -86,7 +86,7 @@ The action outputs the analysis results to the GitHub Step Summary for easy view
 
 ## Project Structure
 
-```
+```text
 action-genai-video-issue-analyzer/
 ├── genaisrc/                          # GenAIScript core logic
 │   ├── action-video-issue-analyzer.genai.mts  # Main analyzer script
