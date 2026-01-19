@@ -1,9 +1,122 @@
 # GitHub Action Video Issue Analyzer
 
+[![Analyze with GenAI](https://img.shields.io/badge/Analyze_with-GenAI-blue?style=for-the-badge&logo=google-gemini)](https://github.com/groupthinking/action-genai-video-issue-analyzer)
+[![Deploy Status](https://img.shields.io/badge/uvai.io-Live-22c55e?style=for-the-badge)](https://uvai.io)
+
 This GitHub Action runs all video assets in an issue body through a LLM model to analyze the content, or can analyze a direct video URL when triggered via workflow_dispatch.
 The default behavior is to summarize and extract task items but this can be customized through the `instructions` input.
 
 The action outputs the analysis results to the GitHub Step Summary for easy viewing in the Actions tab.
+
+---
+
+## Tech Stack & Architecture
+
+### Mechanism (Infrastructure & Tools)
+
+| Category                | Technology            | Notes/Version                                      |
+| ----------------------- | --------------------- | -------------------------------------------------- |
+| **Framework**           | Next.js               | v16.1.2 with App Router + Turbopack                |
+| **Language (Frontend)** | TypeScript            | v5.9.3, strict mode enabled                        |
+| **Language (Backend)**  | JavaScript/TypeScript | Node.js LTS Alpine                                 |
+| **UI Library**          | React                 | v19.2.3                                            |
+| **CSS Implementation**  | Tailwind CSS          | v4.1.18 + PostCSS + Autoprefixer                   |
+| **AI/LLM Primary**      | Google Gemini         | v0.24.1 (@google/generative-ai) - Gemini 2.0 Flash |
+| **AI/LLM Framework**    | GenAIScript           | v2.3.13 - Core orchestration engine                |
+| **Transcription**       | Whisper ASR           | Docker sidecar (openai-whisper-asr-webservice)     |
+| **Video Processing**    | FFmpeg                | Installed in Docker container for frame extraction |
+| **Edge Deployment**     | Cloudflare Workers    | Deployed to uvai.io via Wrangler                   |
+| **Static Hosting**      | Cloudflare Pages      | Next.js static export for production               |
+| **Container Runtime**   | Docker                | node:lts-alpine base image                         |
+| **Package Manager**     | npm                   | Lock file present                                  |
+| **CI/CD Platform**      | GitHub Actions        | Multi-workflow: CI + Video Analyzer                |
+| **Version Control**     | Git/GitHub            | GitHub Agentics workflows enabled                  |
+| **Build Tool**          | Turbopack             | Next.js dev mode                                   |
+| **Code Quality**        | Prettier              | Script linting for genaisrc/ and src/              |
+| **Testing Framework**   | None defined          | `npm test` returns echo (gap identified)           |
+
+### Intent (Logic & Architecture)
+
+- **Core Domain**: **Video-to-Agentic Action Execution** — The system transforms video content (YouTube URLs, direct video files, GitHub issue attachments) into structured, executable intelligence: code artifacts, deployment workflows, and actionable business insights.
+
+- **Architecture Pattern**: **Multi-Surface Delivery** — Single core AI logic (GenAIScript) serves three surfaces:
+  1. **GitHub Action** (Docker container) for CI/CD integration
+  2. **Next.js Frontend** (uvai.io) for user-facing web interface
+  3. **Cloudflare Workers API** for REST endpoints and landing page
+
+- **Data Flow Direction**:
+
+  ```
+  Video Input → GenAIScript/Gemini Analysis → AgenticOutput Schema → Multi-Format Delivery
+       ↓                    ↓                        ↓
+  (YouTube/MP4)    (Transcription + Frames)   (JSON/Markdown/UI)
+  ```
+
+- **Critical Data Path**:
+  1. Video URL/file ingestion
+  2. Whisper transcription (via Docker sidecar or Gemini native)
+  3. FFmpeg frame extraction
+  4. Gemini 2.0 Flash analysis with AgenticOutput schema enforcement
+  5. Structured output: Summary, Endpoints, Capabilities, Workflows, Code Artifacts
+
+- **Authentication**: GitHub Token-based (for issue access and asset resolution); Google API Key (for Gemini); Cloudflare secrets (for Worker deployment)
+
+- **User Roles/Actors**:
+  - **Developers** — Use GitHub Action for automated video analysis on issues
+  - **End Users** — Use uvai.io web interface for direct YouTube analysis
+  - **API Consumers** — Use REST endpoints for programmatic access
+
+- **Key Entities**:
+  - `AgenticOutput` — Core schema defining structured AI output (summary, extractedEndpoints, extractedCapabilities, actionableInsights, generatedWorkflow, codeArtifacts, perceivedLearnings)
+  - `VideoInput` — React component for URL input validation
+  - `AnalysisResults` — React component for rendering structured output
+
+- **External Integrations**:
+  - Google Gemini API (primary AI model)
+  - YouTube (video download via yt-dlp)
+  - GitHub Issues API (asset resolution)
+  - Whisper ASR API (transcription fallback)
+
+- **Communication Style**:
+  - **GitHub Action** — Event-driven (issue opened/edited, workflow_dispatch)
+  - **API** — REST (POST /api/analyze, POST /api/analyze/youtube)
+  - **Frontend** — Client-side fetch to API route
+
+---
+
+## Project Structure
+
+```
+action-genai-video-issue-analyzer/
+├── genaisrc/                          # GenAIScript core logic
+│   ├── action-video-issue-analyzer.genai.mts  # Main analyzer script
+│   ├── architectural_context.md       # Agent deployment context
+│   └── import-github-workspace.genai.mts
+├── src/                               # Next.js frontend
+│   ├── app/
+│   │   ├── api/analyze/route.ts       # API route for video analysis
+│   │   ├── layout.tsx                 # Root layout with SEO metadata
+│   │   ├── page.tsx                   # Main UI page
+│   │   └── globals.css                # Glass morphism design system
+│   ├── components/
+│   │   ├── VideoInput.tsx             # URL input with validation
+│   │   └── AnalysisResults.tsx        # Structured output renderer
+│   └── lib/
+│       └── gemini.ts                  # Gemini SDK integration
+├── workers/
+│   └── index.js                       # Cloudflare Workers API
+├── .github/
+│   ├── workflows/
+│   │   ├── ci.yml                     # CI pipeline
+│   │   └── genai-video-issue-analyzer.yml
+│   └── aw/                            # GitHub Agentics workflows
+├── action.yml                         # GitHub Action definition
+├── Dockerfile                         # Docker container for Action
+├── wrangler.toml                      # Cloudflare Workers config
+└── package.json                       # Node.js dependencies
+```
+
+---
 
 ## Inputs
 
@@ -31,12 +144,13 @@ The action outputs the analysis results to the GitHub Step Summary for easy view
 
 ## Outputs
 
-| name | description |
-| ---- | ----------- |
-
+| name   | description                |
+| ------ | -------------------------- |
 | `text` | The generated text output. |
 
 **Note**: The action also outputs the analysis results to the GitHub Step Summary (`$GITHUB_STEP_SUMMARY`) for easy viewing in the Actions tab.
+
+---
 
 ## Usage
 
@@ -211,6 +325,8 @@ jobs:
           instructions: ${{ github.event.inputs.instructions }}
 ```
 
+---
+
 ## Import GitHub Workspace (User Facing)
 
 You can import an external GitHub repository to analyze its context (for "Technical Breakdown" checks) or to simply run the analyzer within that codebase's scope.
@@ -223,13 +339,58 @@ npx genaiscript run import-github-workspace
 
 Follow the interactive prompts to provide the repository URL.
 
-### "Analyze in GenAI" Badge
+---
 
-Add this badge to your `README.md` to let others know your repository is optimized for GenAI Video Analysis:
+## API Endpoints (uvai.io)
 
-```markdown
-[![Analyze with GenAI](https://img.shields.io/badge/Analyze_with-GenAI-blue?style=for-the-badge&logo=google-gemini)](https://github.com/groupthinking/action-genai-video-issue-analyzer)
+| Method | Endpoint               | Description                                                         |
+| ------ | ---------------------- | ------------------------------------------------------------------- |
+| `GET`  | `/health`              | Health check with version and timestamp                             |
+| `POST` | `/api/analyze`         | Analyze video from URL (JSON body: `{ videoUrl, outputMode }`)      |
+| `POST` | `/api/analyze/youtube` | YouTube-specific analysis (JSON body: `{ youtubeUrl, outputMode }`) |
+
+### Example Request
+
+```bash
+curl -X POST https://uvai.io/api/analyze \
+  -H "Content-Type: application/json" \
+  -d '{"videoUrl": "https://www.youtube.com/watch?v=VIDEO_ID", "outputMode": "agentic"}'
 ```
+
+---
+
+## Next Steps / Roadmap
+
+### Current Completion: ~75%
+
+| Phase                        | Status         | Description                                         | % Complete |
+| ---------------------------- | -------------- | --------------------------------------------------- | ---------- |
+| **1. Core Infrastructure**   | ✅ Done        | GenAIScript, Docker, GitHub Action                  | 100%       |
+| **2. AI Integration**        | ✅ Done        | Gemini 2.0 Flash, AgenticOutput schema              | 100%       |
+| **3. Frontend MVP**          | ✅ Done        | Next.js UI, VideoInput, AnalysisResults             | 95%        |
+| **4. API Layer**             | 🟡 In Progress | Cloudflare Workers deployed, needs full integration | 70%        |
+| **5. Production Deployment** | 🟡 In Progress | uvai.io configured, needs secrets + testing         | 60%        |
+| **6. Testing**               | ❌ Not Started | Unit tests, integration tests, E2E                  | 5%         |
+| **7. Documentation**         | 🟡 In Progress | README updated, needs API docs                      | 80%        |
+
+### Finish Line Requirements
+
+1. **Step 1**: Complete Cloudflare Workers integration with Durable Objects for background video processing
+2. **Step 2**: Add API route for real Gemini analysis (currently mock fallback when no API key)
+3. **Step 3**: Deploy Next.js static export to Cloudflare Pages
+4. **Step 4**: Set production secrets via `wrangler secret put`
+5. **Step 5**: Add unit tests for `gemini.ts` and component tests
+6. **Step 6**: End-to-end test with real YouTube video analysis
+7. **Step 7**: Production launch verification at uvai.io
+
+### Immediate Action Items
+
+- [ ] Set `GOOGLE_API_KEY` in Cloudflare Workers secrets
+- [ ] Configure KV namespace for caching (`VIDEO_CACHE`)
+- [ ] Add comprehensive test suite
+- [ ] Deploy final Next.js build to Cloudflare Pages
+
+---
 
 ## Development
 
@@ -287,3 +448,23 @@ To release a new version of this action, run the release script on a clean worki
 ```bash
 npm run release
 ```
+
+---
+
+## Environment Variables
+
+Copy `.env.example` to `.env` and configure:
+
+| Variable                | Required     | Description                             |
+| ----------------------- | ------------ | --------------------------------------- |
+| `GOOGLE_API_KEY`        | Yes          | Google Gemini API key for analysis      |
+| `OPENAI_API_KEY`        | No           | OpenAI API key (Whisper fallback)       |
+| `GITHUB_TOKEN`          | Yes (Action) | GitHub token for issue asset resolution |
+| `CLOUDFLARE_API_TOKEN`  | No           | For Cloudflare deployment               |
+| `CLOUDFLARE_ACCOUNT_ID` | No           | For Cloudflare deployment               |
+
+---
+
+## License
+
+MIT License - See [LICENSE](LICENSE) for details.
