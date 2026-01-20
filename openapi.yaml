@@ -1,0 +1,393 @@
+openapi: 3.0.3
+info:
+  title: UVAI - Video-to-Agentic Action API
+  description: |
+    Transform video content into executable code, structured workflows, and deployment instructions.
+
+    ## Surfaces
+    - **Edge API** (Cloudflare Workers): `uvai.io` - Fast routing and lightweight responses
+    - **Full API** (Next.js): For complete AI-powered analysis with Gemini
+    - **GitHub Action**: Docker container for CI/CD integration
+  version: 1.0.0
+  contact:
+    name: UVAI Team
+    url: https://uvai.io
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://uvai.io
+    description: Production (Cloudflare Workers Edge)
+  - url: http://localhost:3000
+    description: Development (Next.js)
+
+tags:
+  - name: Health
+    description: Service health and status endpoints
+  - name: Analysis
+    description: Video analysis endpoints
+
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Health check
+      description: Returns service health status with version and environment info
+      operationId: getHealth
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /api/analyze:
+    post:
+      tags: [Analysis]
+      summary: Analyze video from URL
+      description: |
+        Analyze a video URL and extract structured agentic output including:
+        - Summary and primary topic
+        - Extracted API endpoints
+        - Model capabilities demonstrated
+        - Actionable insights with priorities
+        - Generated executable workflows
+        - Code artifacts
+        - Perceived learnings
+      operationId: analyzeVideo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnalyzeRequest'
+      responses:
+        '200':
+          description: Analysis completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyzeSuccessResponse'
+        '202':
+          description: Analysis initiated (Edge mode - pending background processing)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyzePendingResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Analysis failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/analyze/youtube:
+    post:
+      tags: [Analysis]
+      summary: Analyze YouTube video
+      description: YouTube-specific video analysis with URL validation
+      operationId: analyzeYouTube
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/YouTubeAnalyzeRequest'
+      responses:
+        '202':
+          description: YouTube analysis initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/YouTubeAnalyzePendingResponse'
+        '400':
+          description: Invalid YouTube URL
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      required: [status, service, version, timestamp]
+      properties:
+        status:
+          type: string
+          enum: [healthy]
+          example: healthy
+        service:
+          type: string
+          example: video-action-analyzer
+        version:
+          type: string
+          example: 1.0.0
+        environment:
+          type: string
+          enum: [production, staging, development]
+          example: production
+        timestamp:
+          type: string
+          format: date-time
+
+    AnalyzeRequest:
+      type: object
+      required: [videoUrl]
+      properties:
+        videoUrl:
+          type: string
+          format: uri
+          description: URL of the video to analyze (YouTube, direct MP4, etc.)
+          example: https://www.youtube.com/watch?v=VIDEO_ID
+        outputMode:
+          type: string
+          enum: [agentic, simple]
+          default: agentic
+          description: Output format mode
+        items:
+          type: string
+          description: Specific items to extract from the video
+          default: API endpoints, model capabilities, technical implementations
+
+    YouTubeAnalyzeRequest:
+      type: object
+      required: [youtubeUrl]
+      properties:
+        youtubeUrl:
+          type: string
+          format: uri
+          description: YouTube video URL
+          example: https://www.youtube.com/watch?v=VIDEO_ID
+        outputMode:
+          type: string
+          enum: [agentic, simple]
+          default: agentic
+
+    AnalyzeSuccessResponse:
+      type: object
+      required: [status, message, analysis]
+      properties:
+        status:
+          type: string
+          enum: [success]
+        message:
+          type: string
+          example: Video analysis completed
+        videoId:
+          type: string
+          nullable: true
+        videoUrl:
+          type: string
+        outputMode:
+          type: string
+        analysis:
+          $ref: '#/components/schemas/AgenticOutput'
+        formattedOutput:
+          type: string
+          description: Markdown-formatted analysis output
+
+    AnalyzePendingResponse:
+      type: object
+      required: [status, message]
+      properties:
+        status:
+          type: string
+          enum: [pending]
+        message:
+          type: string
+          example: Video analysis initiated
+        videoUrl:
+          type: string
+        outputMode:
+          type: string
+        estimatedTime:
+          type: string
+          example: 30-60 seconds
+        note:
+          type: string
+
+    YouTubeAnalyzePendingResponse:
+      type: object
+      required: [status, message, videoId]
+      properties:
+        status:
+          type: string
+          enum: [pending]
+        message:
+          type: string
+        videoId:
+          type: string
+          description: Extracted YouTube video ID
+        youtubeUrl:
+          type: string
+        outputMode:
+          type: string
+        estimatedTime:
+          type: string
+
+    AgenticOutput:
+      type: object
+      required: [summary, actionableInsights, generatedWorkflow]
+      description: Structured AI-generated analysis output
+      properties:
+        summary:
+          $ref: '#/components/schemas/VideoSummary'
+        extractedEndpoints:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExtractedEndpoint'
+        extractedCapabilities:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExtractedCapability'
+        actionableInsights:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActionableInsight'
+        generatedWorkflow:
+          $ref: '#/components/schemas/GeneratedWorkflow'
+        codeArtifacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/CodeArtifact'
+        perceivedLearnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/PerceivedLearning'
+
+    VideoSummary:
+      type: object
+      required: [title, description, primaryTopic]
+      properties:
+        title:
+          type: string
+          description: Title derived from video content
+        description:
+          type: string
+          description: Brief description of what the video demonstrates
+        duration:
+          type: string
+          description: Estimated duration of key content
+        primaryTopic:
+          type: string
+          description: Main technical topic covered
+
+    ExtractedEndpoint:
+      type: object
+      required: [endpoint, purpose]
+      properties:
+        endpoint:
+          type: string
+          description: API endpoint URL or path
+        method:
+          type: string
+          enum: [GET, POST, PUT, DELETE, PATCH]
+        purpose:
+          type: string
+        timestamp:
+          type: string
+
+    ExtractedCapability:
+      type: object
+      required: [capability, description]
+      properties:
+        capability:
+          type: string
+        description:
+          type: string
+        useCase:
+          type: string
+        timestamp:
+          type: string
+
+    ActionableInsight:
+      type: object
+      required: [insight, priority]
+      properties:
+        insight:
+          type: string
+        priority:
+          type: string
+          enum: [high, medium, low]
+        implementation:
+          type: string
+
+    GeneratedWorkflow:
+      type: object
+      required: [name, steps]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        steps:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowStep'
+        prerequisites:
+          type: array
+          items:
+            type: string
+        estimatedTime:
+          type: string
+
+    WorkflowStep:
+      type: object
+      required: [stepNumber, action]
+      properties:
+        stepNumber:
+          type: integer
+        action:
+          type: string
+        command:
+          type: string
+          description: CLI command if applicable
+        code:
+          type: string
+          description: Code snippet if applicable
+        expectedOutput:
+          type: string
+
+    CodeArtifact:
+      type: object
+      required: [filename, language, code, purpose]
+      properties:
+        filename:
+          type: string
+        language:
+          type: string
+        code:
+          type: string
+        purpose:
+          type: string
+
+    PerceivedLearning:
+      type: object
+      required: [learning, applicability]
+      properties:
+        learning:
+          type: string
+        applicability:
+          type: string
+        suggestedChange:
+          type: string
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        example:
+          type: object
