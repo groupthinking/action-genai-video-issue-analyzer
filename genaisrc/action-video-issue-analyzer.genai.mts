@@ -243,21 +243,28 @@ async function processAssetLink(assetLink: string) {
   await processVideo(filename);
 }
 
-async function processVideo(filename: string) {
+async function processVideo(filename: string, externalTranscript?: string) {
   // Gemini handles video+audio together natively
   // Use Gemini 1.5 Flash for transcription as it is stable for the transcription tool
   let transcript: Awaited<ReturnType<typeof transcribe>> | undefined;
 
-  try {
-    transcript = await transcribe(filename, {
-      model: "google:gemini-1.5-flash",
-      cache: true,
-    });
-    output.p(`✅ Transcription completed with Gemini.`);
-  } catch (transcribeError: any) {
-    dbg(`Transcription failed: ${transcribeError.message}`);
-    output.p(`📹 Proceeding with video analysis (Gemini will analyze audio directly).`);
-    // This is fine - Gemini will analyze the video with audio in the main prompt
+  if (externalTranscript) {
+    dbg(`Using external transcript provided.`);
+    // Construct a minimal transcript-like object that matches the expected structure
+    // We only really need .srt or .text for the prompt
+    transcript = { srt: externalTranscript } as any;
+  } else {
+    try {
+      transcript = await transcribe(filename, {
+        model: "google:gemini-1.5-flash",
+        cache: true,
+      });
+      output.p(`✅ Transcription completed with Gemini.`);
+    } catch (transcribeError: any) {
+      dbg(`Transcription failed: ${transcribeError.message}`);
+      output.p(`📹 Proceeding with video analysis (Gemini will analyze audio directly).`);
+      // This is fine - Gemini will analyze the video with audio in the main prompt
+    }
   }
 
   if (!transcript) {
@@ -412,8 +419,8 @@ async function processDirectVideoUrl(videoUrl: string) {
           dbg(`Output template: ${tempTemplate}`);
 
           // Download using yt-dlp with --print filename to capture the actual output path
-          // This avoids shell escaping issues with host.exec
-          const downloadResult = await host.exec(`yt-dlp --js-runtimes node -f "best" -o "${tempTemplate}" "${videoUrl}" --no-playlist --print after_move:filepath`);
+          // Also try to download auto-subtitles
+          const downloadResult = await host.exec(`yt-dlp --js-runtimes node -f "best" --write-auto-subs --sub-lang "en" --sub-format "srt/vtt" -o "${tempTemplate}" "${videoUrl}" --no-playlist --print after_move:filepath`);
 
           // The printed filepath is in stdout
           const downloadedPath = (downloadResult.stdout || "")
@@ -423,6 +430,26 @@ async function processDirectVideoUrl(videoUrl: string) {
               .pop();
 
           dbg(`yt-dlp reported path: ${downloadedPath}`);
+
+          // Try to find the subtitle file
+          let externalTranscript: string | undefined;
+          try {
+            const subPathSrt = downloadedPath ? downloadedPath.replace(/\.[^.]+$/, ".en.srt") : `${cacheDir}/${tempBase}.en.srt`;
+            const subPathVtt = downloadedPath ? downloadedPath.replace(/\.[^.]+$/, ".en.vtt") : `${cacheDir}/${tempBase}.en.vtt`;
+
+            const srtStat = await workspace.stat(subPathSrt);
+            const vttStat = await workspace.stat(subPathVtt);
+
+            if (srtStat) {
+                externalTranscript = await workspace.readText(subPathSrt);
+                dbg(`Loaded external transcript from SRT: ${subPathSrt}`);
+            } else if (vttStat) {
+                externalTranscript = await workspace.readText(subPathVtt);
+                dbg(`Loaded external transcript from VTT: ${subPathVtt}`);
+            }
+          } catch (e) {
+            dbg(`Failed to load external transcript: ${e}`);
+          }
 
           if (!downloadedPath) {
               // Fallback: construct the likely path using .mp4 extension (most common)
@@ -435,13 +462,13 @@ async function processDirectVideoUrl(videoUrl: string) {
                   throw new Error(`Download failed. Expected file at: ${likelyPath}`);
               }
               output.p(`Processing: ${likelyPath}`);
-              await processVideo(likelyPath);
+              await processVideo(likelyPath, externalTranscript);
 
               // Clean up
               try { await host.exec(`rm -f "${likelyPath}"`); } catch (e) { dbg(`Cleanup warning: ${e}`); }
           } else {
               output.p(`Processing: ${downloadedPath}`);
-              await processVideo(downloadedPath);
+              await processVideo(downloadedPath, externalTranscript);
 
               // Clean up
               try { await host.exec(`rm -f "${downloadedPath}"`); } catch (e) { dbg(`Cleanup warning: ${e}`); }
