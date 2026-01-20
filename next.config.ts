@@ -1,16 +1,14 @@
 import type { NextConfig } from "next";
 
-const isDev = process.env.NODE_ENV === "development";
-
 const nextConfig: NextConfig = {
-  // Output static export for Cloudflare Pages (production only)
-  // In development, use standard mode to support API routes
-  ...(isDev ? {} : { output: "export" }),
+  // Note: Using standard Next.js mode (not static export)
+  // to support dynamic API routes (/api/analyze)
 
-  // Disable image optimization for static export
+  // Disable image optimization for Cloudflare compatibility
   images: {
     unoptimized: true,
   },
 };
 
 export default nextConfig;
+

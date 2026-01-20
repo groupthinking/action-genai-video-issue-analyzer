@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { analyzeVideoUrl, formatAgenticOutput, AgenticOutput } from "@/lib/gemini";
 
-// Force dynamic rendering for API routes (required with output: "export")
-export const dynamic = "force-dynamic";
-
 // Extract YouTube video ID from URL
 function extractYouTubeId(url: string): string | null {
   const regex =
