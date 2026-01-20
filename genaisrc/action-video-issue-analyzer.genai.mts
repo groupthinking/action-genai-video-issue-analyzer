@@ -441,10 +441,10 @@ async function processDirectVideoUrl(videoUrl: string) {
             const vttStat = await workspace.stat(subPathVtt);
 
             if (srtStat) {
-                externalTranscript = await workspace.readText(subPathSrt);
+                externalTranscript = (await workspace.readText(subPathSrt))?.content;
                 dbg(`Loaded external transcript from SRT: ${subPathSrt}`);
             } else if (vttStat) {
-                externalTranscript = await workspace.readText(subPathVtt);
+                externalTranscript = (await workspace.readText(subPathVtt))?.content;
                 dbg(`Loaded external transcript from VTT: ${subPathVtt}`);
             }
           } catch (e) {
