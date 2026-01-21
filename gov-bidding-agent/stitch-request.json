@@ -1,0 +1,12 @@
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "generate_screen_from_text",
+    "arguments": {
+      "prompt": "Government Bidding AI Agent Dashboard - Professional enterprise UI with: Dark navy background, Clean card grid layout for contract opportunities, AI analysis score badges (green/yellow/red), Bid generation status indicators, Modern sans-serif typography, Proper spacing and alignment, Data visualization charts for metrics, Action buttons with clear CTAs",
+      "model": "GEMINI_3_FLASH"
+    }
+  }
+}
