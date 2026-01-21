@@ -1,89 +1,126 @@
 # replicator.py
 import json
 import os
+import re
 import sys
-import vertexai
 import traceback
-from vertexai.generative_models import GenerativeModel, Part
+import vertexai
+from vertexai.generative_models import GenerativeModel, Part, Tool
+from vertexai.generative_models import grounding
 
 # CONFIGURATION
 PROJECT_ID = "uvai-730bb"
 
-# --- 1. THE INPUT AGENT (Video Fetcher) ---
-class VideoIngestAgent:
-    def stream_audio_to_memory(self, video_url):
-        print(f"📥 Cloud Ingest: Streaming audio to memory (No Disk I/O)...")
-        import subprocess
+# --- 1. THE INPUT AGENT (Deprecated - Native Cloud Support) ---
+# VideoIngestAgent removed. Gemini accesses URI directly.
 
-        # yt-dlp to stdout (-)
-        cmd = [
-            'yt-dlp',
-            '-x', # Extract audio
-            '--audio-format', 'mp3', # mp3 is safer for streaming containers than m4a sometimes
-            '-o', '-', # Output to stdout
-            '--quiet', # Suppress progress bars to keep stdout clean
-            '--no-warnings',
-            video_url
-        ]
-
-        try:
-            # Capture stdout as bytes
-            process = subprocess.run(cmd, capture_output=True, check=True)
-            audio_data = process.stdout
-            print(f"✅ Buffered {len(audio_data) / 1024 / 1024:.2f} MB to memory.")
-            return audio_data, "audio/mp3"
-        except subprocess.CalledProcessError as e:
-            traceback.print_exc()
-            print(f"\n❌ Error: Stream failed. Check URL or network.")
-            sys.exit(1)
-
-# --- 2. THE SOLUTIONS ARCHITECT (Gemini 1.5 Pro Multimodal) ---
+# --- 2. THE SOLUTIONS ARCHITECT (Gemini 2.0 Flash Multimodal) ---
 class SolutionsArchitectAgent:
     def __init__(self, project_id):
         print(f"☁️ Connecting to Google Vertex AI (Project: {project_id})...")
         vertexai.init(project=project_id, location="us-central1")
         self.model = GenerativeModel("gemini-2.0-flash")
 
-    def analyze_and_reverse_engineer(self, audio_data, mime_type):
-        print("🧠 Analyzing audio stream with Gemini 2.0 Flash (Multimodal)...")
+    def analyze_and_reverse_engineer(self, video_url):
+        print(f"🧠 Analysis via Google Search Grounding (Gemini 2.0 Flash)...")
 
-        # Audio data is already bytes
-        audio_part = Part.from_data(
-            mime_type=mime_type,
-            data=audio_data
-        )
+        # Configure Grounding Tool (Validated Bypass)
+        # Using raw dict construction to ensure compatibility with Gemini 2.0
+        gsr_tool = Tool.from_dict({"google_search": {}})
 
-        prompt = """
-        You are a Senior DevOps Engineer. You are listening to a technical tutorial audio stream.
+        prompt = f"""
+        You are a Senior DevOps Engineer.
+        SEARCH for the video URL: {video_url}
+
+        Your task is to analyze the technical content associated with this video (transcript, description, discussions).
 
         YOUR GOAL: Extract the exact steps to REPLICATE the result shown.
 
         1. IDENTIFY THE GOAL: What is being built?
         2. TECH STACK: List every tool, library, and API mentioned.
-        3. ACCESS REQUIREMENTS: What API Keys, Logins, or Secrets are needed?
-        4. EXECUTION PLAN: Step-by-step shell commands or Python code logic.
+        3. EXECUTION PLAN: Step-by-step shell commands or Python code logic.
 
         OUTPUT JSON format only:
-        {
+        {{
             "goal": "Build a...",
-            "required_tools": ["python", "docker", "api_key_x"],
-            "missing_secrets": ["OPENAI_API_KEY", "AWS_SECRET"],
+            "required_tools": ["python", "docker"],
+            "missing_secrets": ["API_KEY"],
             "execution_steps": [
-                {"step": 1, "cmd": "pip install x"},
-                {"step": 2, "code": "import x..."}
+                {{"step": 1, "cmd": "pip install x"}},
+                {{"step": 2, "code": "import x..."}}
             ]
-        }
+        }}
         """
 
-        response = self.model.generate_content([audio_part, prompt])
+        # Generation Config (Standard)
+        # JSON Mode is incompatible with Search Tool, so we rely on prompt instructions.
+        generation_config = {
+            "temperature": 0.4
+        }
 
-        # Clean response
-        text = response.text.strip()
-        if text.startswith("```json"):
-            text = text[7:]
+        try:
+            response = self.model.generate_content(
+                prompt, # Prompts for search
+                tools=[gsr_tool], # Enable grounding
+                generation_config=generation_config
+            )
+
+            # debug log
+            try:
+                grounding_len = len(response.candidates[0].grounding_metadata.search_entry_point.rendered_content)
+                print(f"🔍 Grounding Source: {grounding_len} chars")
+            except:
+                print("🔍 Grounding Source: None")
+
+            # Safe extraction
+            try:
+                candidate = response.candidates[0]
+                # print(f"🔍 Finish Reason: {candidate.finish_reason}")
+
+                parts_text = []
+                for part in candidate.content.parts:
+                    if part.text:
+                        parts_text.append(part.text)
+                text = "\n".join(parts_text)
+
+            except Exception as e:
+                print(f"❌ Text extraction failed: {e}")
+                text = ""
+
+            try:
+                return extract_json(text)
+            except Exception as e:
+                print(f"⚠️ JSON Parse Failed: {e}")
+                print(f"RAW RESP: {text}") # Print FULL text to debug
+                return None
+
+        except Exception as e:
+            traceback.print_exc()
+            print(f"\n❌ Grounding Analysis Failed.")
+            return None
+
+# Helper for robust JSON extraction
+def extract_json(text):
+    text = text.strip()
+    # Strip markdown code blocks
+    if text.startswith("```"):
+        # Find first newline
+        first_newline = text.find("\n")
+        if first_newline != -1:
+            text = text[first_newline+1:]
+        # Strip closing backticks
         if text.endswith("```"):
             text = text[:-3]
-        return json.loads(text)
+
+    # Find outer brackets if still not clean
+    text = text.strip()
+    start_idx = text.find("{")
+    end_idx = text.rfind("}")
+
+    if start_idx != -1 and end_idx != -1:
+        text = text[start_idx:end_idx+1]
+
+    return json.loads(text)
 
 # --- 3. THE HUMAN BRIDGE (Verification) ---
 class HumanLoopAgent:
@@ -123,13 +160,13 @@ class BuilderAgent:
 
 # --- MAIN REPLICATOR PIPELINE ---
 def mirror_video_workflow(video_url, project_id):
-    # 1. DOWNLOAD (Stream)
-    ingest = VideoIngestAgent()
-    audio_bytes, mime_type = ingest.stream_audio_to_memory(video_url)
-
-    # 2. ANALYZE (Multimodal)
+    # 1. ANALYZE (Direct Native Cloud URI)
     architect = SolutionsArchitectAgent(project_id)
-    blueprint = architect.analyze_and_reverse_engineer(audio_bytes, mime_type)
+    blueprint = architect.analyze_and_reverse_engineer(video_url)
+
+    if not blueprint:
+        print("❌ Analysis failed (Model returned None). Exiting.")
+        return
 
     # 3. VERIFY
     manager = HumanLoopAgent()
