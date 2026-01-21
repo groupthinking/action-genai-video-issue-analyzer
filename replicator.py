@@ -11,6 +11,29 @@ from vertexai.generative_models import grounding
 # CONFIGURATION
 PROJECT_ID = "uvai-730bb"
 
+def sanitize_url(url):
+    """
+    Converts various YouTube URL formats to a canonical clean version
+    to improve Search Grounding performance.
+    """
+    url = url.strip()
+    # Handle youtu.be shortlinks
+    if "youtu.be/" in url:
+        video_id = url.split("youtu.be/")[1].split("?")[0]
+        return f"https://www.youtube.com/watch?v={video_id}"
+
+    # Handle standard links with extra params
+    if "youtube.com/watch" in url:
+        try:
+            # Extract v=ID
+            if "v=" in url:
+                video_id = url.split("v=")[1].split("&")[0]
+                return f"https://www.youtube.com/watch?v={video_id}"
+        except:
+            pass
+
+    return url
+
 # --- 1. THE INPUT AGENT (Deprecated - Native Cloud Support) ---
 # VideoIngestAgent removed. Gemini accesses URI directly.
 
@@ -145,12 +168,15 @@ class BuilderAgent:
     def execute(self, steps):
         print("\n🚀 --- GENERATING SOLUTION ---")
 
-        if os.path.exists("generated_solution.py"):
-            os.remove("generated_solution.py")
+        # Create file at start to ensure it exists
+        with open("generated_solution.py", "w") as f:
+            f.write("# Generated Solution\n\n")
 
         for step in steps:
             if "cmd" in step:
                 print(f"💻 [CMD] {step['cmd']}")
+                with open("generated_solution.py", "a") as f:
+                    f.write(f"# CMD: {step['cmd']}\n")
             elif "code" in step:
                 print(f"🐍 [CODE] Appending to generated_solution.py...")
                 with open("generated_solution.py", "a") as f:
@@ -191,4 +217,7 @@ if __name__ == "__main__":
     if not VIDEO_URL:
         print("❌ Error: No URL provided.")
         sys.exit(1)
+
+    VIDEO_URL = sanitize_url(VIDEO_URL)
+    print(f"🔗 Analysis Target: {VIDEO_URL}")
     mirror_video_workflow(VIDEO_URL, PROJECT_ID)

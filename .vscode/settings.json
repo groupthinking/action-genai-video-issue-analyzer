@@ -2,5 +2,10 @@
     "vs-kubernetes.kubectl-path": "/usr/local/share/google-cloud-sdk/bin/kubectl",
     "[json]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"
-    }
+    },
+    "geminicodeassist.agentYoloMode": true,
+    "geminicodeassist.agentDebugMode": true,
+    "geminicodeassist.chat.defaultCodeBlockDisplay": "Expanded",
+    "geminicodeassist.inlineSuggestions.nextEditPredictions": true,
+    "geminicodeassist.verboseLogging": true
 }

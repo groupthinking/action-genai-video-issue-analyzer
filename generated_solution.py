@@ -1,2 +1,6 @@
-import whisper; model = whisper.load_model("base"); result = model.transcribe("audio.mp3")
-import openai; openai.api_key = 'YOUR_API_KEY'; response = openai.Completion.create(engine="text-davinci-003", prompt=result["text"], max_tokens=150)
+# Generated Solution
+
+# CMD: [Shell command or description of the first step, e.g., git clone <repository_url>]
+# CMD: [Next shell command or description, e.g., docker build -t my-image .]
+# CMD: [Alternative shell command if code is not the primary execution method]
+# CMD: [Further steps...]
