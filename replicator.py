@@ -11,23 +11,31 @@ PROJECT_ID = "uvai-730bb"
 
 # --- 1. THE INPUT AGENT (Video Fetcher) ---
 class VideoIngestAgent:
-    def download_audio(self, video_url):
-        print(f"📥 Cloud Ingest: Buffering audio from stream...")
-        output_filename = "temp_audio"
-        # Force overwrite (-y), extract audio (-x), format m4a
-        cmd = f'yt-dlp -x --audio-format m4a --force-overwrite -o "{output_filename}.%(ext)s" {video_url}'
+    def stream_audio_to_memory(self, video_url):
+        print(f"📥 Cloud Ingest: Streaming audio to memory (No Disk I/O)...")
+        import subprocess
+
+        # yt-dlp to stdout (-)
+        cmd = [
+            'yt-dlp',
+            '-x', # Extract audio
+            '--audio-format', 'mp3', # mp3 is safer for streaming containers than m4a sometimes
+            '-o', '-', # Output to stdout
+            '--quiet', # Suppress progress bars to keep stdout clean
+            '--no-warnings',
+            video_url
+        ]
 
         try:
-            exit_code = os.system(cmd)
-            if exit_code != 0:
-                print("❌ Error: Audio ingest failed. Check the URL.")
-                sys.exit(1)
-        except Exception as e:
+            # Capture stdout as bytes
+            process = subprocess.run(cmd, capture_output=True, check=True)
+            audio_data = process.stdout
+            print(f"✅ Buffered {len(audio_data) / 1024 / 1024:.2f} MB to memory.")
+            return audio_data, "audio/mp3"
+        except subprocess.CalledProcessError as e:
             traceback.print_exc()
-            print(f"\n❌ Error: Audio ingest failed due to an unexpected error: {str(e)}")
+            print(f"\n❌ Error: Stream failed. Check URL or network.")
             sys.exit(1)
-
-        return f"{output_filename}.m4a"
 
 # --- 2. THE SOLUTIONS ARCHITECT (Gemini 1.5 Pro Multimodal) ---
 class SolutionsArchitectAgent:
@@ -36,14 +44,12 @@ class SolutionsArchitectAgent:
         vertexai.init(project=project_id, location="us-central1")
         self.model = GenerativeModel("gemini-2.0-flash")
 
-    def analyze_and_reverse_engineer(self, audio_path):
-        print("🧠 Analyzing audio stream with Gemini 1.5 Pro (Multimodal)...")
+    def analyze_and_reverse_engineer(self, audio_data, mime_type):
+        print("🧠 Analyzing audio stream with Gemini 2.0 Flash (Multimodal)...")
 
-        with open(audio_path, "rb") as f:
-            audio_data = f.read()
-
+        # Audio data is already bytes
         audio_part = Part.from_data(
-            mime_type="audio/mp4",
+            mime_type=mime_type,
             data=audio_data
         )
 
@@ -117,13 +123,13 @@ class BuilderAgent:
 
 # --- MAIN REPLICATOR PIPELINE ---
 def mirror_video_workflow(video_url, project_id):
-    # 1. DOWNLOAD
+    # 1. DOWNLOAD (Stream)
     ingest = VideoIngestAgent()
-    audio_file = ingest.download_audio(video_url)
+    audio_bytes, mime_type = ingest.stream_audio_to_memory(video_url)
 
     # 2. ANALYZE (Multimodal)
     architect = SolutionsArchitectAgent(project_id)
-    blueprint = architect.analyze_and_reverse_engineer(audio_file)
+    blueprint = architect.analyze_and_reverse_engineer(audio_bytes, mime_type)
 
     # 3. VERIFY
     manager = HumanLoopAgent()
@@ -138,9 +144,14 @@ def mirror_video_workflow(video_url, project_id):
 
 if __name__ == "__main__":
     # Check for CLI Argument
-    if len(sys.argv) < 2:
-        print("❌ Usage: python replicator.py <YOUTUBE_URL>")
-        sys.exit(1)
+    if len(sys.argv) > 1:
+        VIDEO_URL = sys.argv[1]
+    else:
+        # Fallback to interactive input to avoid shell quoting issues
+        print("🔗 Enter YouTube URL:")
+        VIDEO_URL = input("> ").strip()
 
-    VIDEO_URL = sys.argv[1]
+    if not VIDEO_URL:
+        print("❌ Error: No URL provided.")
+        sys.exit(1)
     mirror_video_workflow(VIDEO_URL, PROJECT_ID)
