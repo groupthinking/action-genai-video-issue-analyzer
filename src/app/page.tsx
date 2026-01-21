@@ -30,6 +30,25 @@ export default function HomePage() {
         {/* Client Island - Interactive Video Analysis */}
         <VideoAnalyzer />
 
+        {/* AI Deliverables Showcase - Server Rendered */}
+        <div className="glass-card p-8 animate-slide-up glass-card-hover">
+          <h2 className="text-2xl font-bold mb-6 gradient-text">AI Deliverables Showcase</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+            <a
+              href="/deliverables/index.html"
+              target="_blank"
+              className="glass-card p-4 hover:border-accent-cyan transition-colors group"
+            >
+              <h4 className="font-semibold group-hover:text-accent-cyan">Landing Page Preview</h4>
+              <p className="text-sm text-gray-400">Premium glassmorphism design for the 'Flip-side' Divorce niche.</p>
+            </a>
+            <div className="glass-card p-4">
+              <h4 className="font-semibold">Strategy Bundle</h4>
+              <p className="text-sm text-gray-400">Ad hooks and launch plan for high-intent markets.</p>
+            </div>
+          </div>
+        </div>
+
         {/* API Info - Server Rendered */}
         <div className="glass-card p-6 text-center animate-slide-up">
           <h3 className="text-lg font-semibold mb-4">

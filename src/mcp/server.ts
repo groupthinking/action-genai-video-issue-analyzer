@@ -245,6 +245,38 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ["analysis"],
         },
       },
+      {
+        name: "list_datasets",
+        description: "List BigQuery datasets for a given Google Cloud project",
+        inputSchema: {
+          type: "object" as const,
+          properties: {
+            project: {
+              type: "string",
+              description: "Google Cloud Project ID",
+            },
+          },
+          required: ["project"],
+        },
+      },
+      {
+        name: "list_repositories",
+        description: "List Artifact Registry repositories in a specific region",
+        inputSchema: {
+          type: "object" as const,
+          properties: {
+            project: {
+              type: "string",
+              description: "Google Cloud Project ID",
+            },
+            location: {
+              type: "string",
+              description: "GCP region (e.g., 'us-central1')",
+            },
+          },
+          required: ["project", "location"],
+        },
+      },
     ],
   };
 });
