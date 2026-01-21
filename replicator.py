@@ -3,6 +3,7 @@ import json
 import os
 import sys
 import vertexai
+import traceback
 from vertexai.generative_models import GenerativeModel, Part
 
 # CONFIGURATION
@@ -33,7 +34,7 @@ class SolutionsArchitectAgent:
     def __init__(self, project_id):
         print(f"☁️ Connecting to Google Vertex AI (Project: {project_id})...")
         vertexai.init(project=project_id, location="us-central1")
-        self.model = GenerativeModel("gemini-1.5-flash-001")
+        self.model = GenerativeModel("gemini-2.0-flash")
 
     def analyze_and_reverse_engineer(self, audio_path):
         print("🧠 Analyzing audio stream with Gemini 1.5 Pro (Multimodal)...")
