@@ -275,7 +275,7 @@ async function processVideo(filename: string, externalTranscript?: string) {
   });
 
   // Determine model and options based on environment or default to Gemini 2.0 Flash for video
-  const modelId = vars.model || "google:gemini-2.0-flash-exp";
+  const modelId = vars.model || "google:gemini-2.0-flash-thinking-exp";
   const isGemini = modelId.includes("gemini");
   const isAgenticMode = (vars.outputMode as string) !== "summary";
 

@@ -11,8 +11,11 @@ script({
 });
 
 const { meetingType } = env.vars;
+const { output } = env;
 
-system(`You are a meeting intelligence expert. Your goal is to extract high-fidelity action items and strategic insights.
+const { text } = await runPrompt(
+    ctx => {
+        ctx.$`You are a meeting intelligence expert. Your goal is to extract high-fidelity action items and strategic insights.
 
 ## Intelligence Patterns (Ref: Fireflies/Zoom RTMS)
 - **High-Intent Extraction**: Identify "Soft Commitments" (e.g., "I'll look into it") vs. "Hard Commitments".
@@ -23,14 +26,11 @@ system(`You are a meeting intelligence expert. Your goal is to extract high-fide
 1. **Actionable Table**: [Task] | [Owner] | [Deadline] | [Priority]
 2. **Strategic Pivot Points**: Any moment the conversation shifted the project trajectory.
 3. **Sentiment Map**: Brief summary of the 'vibe' at start vs. end.
-4. **Agentic Next Steps**: What an AI Agent should do NEXT to follow up on this.`);
-
-const { text } = await runPrompt(
-    ctx => {
+4. **Agentic Next Steps**: What an AI Agent should do NEXT to follow up on this.`.role("system");
         ctx.$`Analyze the meeting data for a ${meetingType} session.`;
     },
     {
-        model: "google:gemini-2.0-flash-exp",
+        model: "google:gemini-2.0-flash-thinking-exp",
         label: "meeting intelligence analysis"
     }
 );

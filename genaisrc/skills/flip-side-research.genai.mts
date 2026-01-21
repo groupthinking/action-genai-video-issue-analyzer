@@ -18,7 +18,7 @@ const { text } = await runPrompt(
         ctx.$`Perform Flip-side Industry analysis for: ${industry}. Focus on: ${focus}.`.role("user");
     },
     {
-        model: "google:gemini-2.0-flash-exp",
+        model: "google:gemini-2.0-flash-thinking-exp",
         label: `flip-side research for ${industry}`
     }
 );

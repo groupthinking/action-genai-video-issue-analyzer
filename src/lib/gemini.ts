@@ -192,7 +192,7 @@ export async function analyzeVideoUrl(
 
   // Use Gemini 2.0 Flash for video understanding
   const model = genAI.getGenerativeModel({
-    model: "gemini-2.0-flash",
+    model: "gemini-2.0-flash-thinking-exp",
     generationConfig: {
       responseMimeType: "application/json",
       responseSchema: agenticOutputSchema,

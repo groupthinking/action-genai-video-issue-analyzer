@@ -18,7 +18,7 @@ const { text: researchResult } = await runPrompt(
         ctx.$`${FLIP_SIDE_STRATEGY}`.role("system");
         ctx.$`Perform Flip-side Industry analysis for: ${industry}. Focus on: ${focus}.`.role("user");
     },
-    { model: "google:gemini-2.0-flash-exp", label: "running research skill" }
+    { model: "google:gemini-2.0-flash-thinking-exp", label: "running research skill" }
 );
 
 // 2. Generate Market-Ready Assets
@@ -34,7 +34,7 @@ ${researchResult}
 2. **ads.md**: A list of 5 ad headlines and 3 body copy variations.
 3. **launch-plan.md**: A 5-step checklist to go live.`.role("user");
     },
-    { model: "google:gemini-2.0-flash-exp", label: "generating deliverables" }
+    { model: "google:gemini-2.0-flash-thinking-exp", label: "generating deliverables" }
 );
 
 // 3. Write Deliverables to Disk (Simulating Strategy-to-Action)
