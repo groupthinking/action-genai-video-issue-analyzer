@@ -15,7 +15,7 @@ import { getJobStats } from "@/lib/orchestrator";
 
 export async function GET(request: NextRequest) {
   try {
-    const stats = getJobStats();
+    const stats = await getJobStats();
 
     // Calculate health status
     const totalJobs = Object.values(stats).reduce((a, b) => a + b, 0);

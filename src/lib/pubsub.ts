@@ -73,8 +73,8 @@ export async function publishToQueue(
   videoUrl: string,
   taskType: AnalysisTaskType = "full_analysis"
 ): Promise<{ jobId: string; messageId: string }> {
-  // Create the job first
-  const job = createJob(videoUrl, taskType);
+  // Create the job first (now async - writes to Cloud SQL)
+  const job = await createJob(videoUrl, taskType);
   const message = createPubSubMessage(job);
 
   // In production: Use Google Cloud Pub/Sub client
@@ -109,8 +109,8 @@ export async function handlePubSubPush(
 
   console.log(`[PubSub] Received message for job ${message.jobId} (retry: ${message.retryCount})`);
 
-  // Check if job exists
-  const job = getJob(message.jobId);
+  // Check if job exists (now async - reads from Cloud SQL)
+  const job = await getJob(message.jobId);
   if (!job) {
     return { success: false, error: `Job ${message.jobId} not found` };
   }

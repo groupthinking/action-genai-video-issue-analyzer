@@ -3,24 +3,111 @@ trigger: model_decision
 description: PRIOR TO PROCESSING A VIDEO
 ---
 
-# Video Prompts Catalog
+# Video Processing Rule
 
-> **Purpose**: This organized catalog extracts and categorizes all prompts, agent responses, and outcomes from the original RTF document. It serves as a reference guide for building video-to-action pipelines.
+> **When to use**: Before processing any video URL or video content analysis task.
 
----
+## Quick Reference
 
-## Table of Contents Fille ## VIDEO-PROMPTS-CATALOG.MD
+**Full catalog**: `docs/video-prompts-catalog.md`
 
-1. [Pipeline Overview](#1-pipeline-overview)
-2. [Agent Definitions](#2-agent-definitions)
-3. [Startup/Idea Validation Prompts](#3-startupidea-validation-prompts)
-4. [Agent Memory Architecture](#4-agent-memory-architecture)
-5. [Video Transcription & Analysis Prompts](#5-video-transcription--analysis-prompts)
-6. [Next.js Build Workflow](#6-nextjs-build-workflow)
-7. [UI/UX Design System Prompts](#7-uiux-design-system-prompts)
-8. [On-Demand Deployed Software Platform](#8-on-demand-deployed-software-platform)
-9. [Go-To-Market (GTM) Workflow](#9-go-to-market-gtm-workflow)
-10. [First Principles Framework](#10-first-principles-framework)
-11. [Technical Integration Standards](#11-technical-integration-standards)
-12. [Decision-Making Framework](#12-decision-making-framework)
-13. [Operational Excellence Standards](#13-operational-excellence-standards)
+## Pre-Processing Checklist
+
+1. **Identify Input Type**
+   - YouTube URL → Use transcript extraction + multimodal analysis
+   - Local video file → Use Gemini native video understanding
+   - Video with code → Prioritize CSDAA agent patterns
+
+2. **Select Agent Pattern**
+   | Task Type | Primary Agent | Secondary |
+   |-----------|---------------|-----------|
+   | Transcription | VTTA | - |
+   | Code extraction | CSDAA | VTTA |
+   | Full analysis | OFSA | VTTA + CSDAA |
+
+3. **Memory Architecture**
+   - Working Memory: Current prompt context
+   - Session Memory: Conversation history (SessionManager)
+   - Long-Term: User preferences, past analyses (LongTermMemoryDB)
+
+## Core Agents
+
+### VTTA (Video Transcription & Timing Agent)
+
+- Capture all dialogue with timestamps
+- Note subject shifts and key events
+- Tools: Transcript Generation
+
+### CSDAA (Code Structure & Diff Analysis Agent)
+
+- Extract terminal commands and outputs
+- Document error-handling sequences
+- Tools: Terminal Output Capture, Diff Analysis
+
+### OFSA (Output Formatting & Synthesis Agent)
+
+- Synthesize VTTA + CSDAA outputs
+- Maintain chronological order
+- Tools: Markdown Engine, Mirrored Version Output
+
+## Gemini Video Processing (Preferred)
+
+```typescript
+// Direct multimodal analysis - no download required
+const videoFile = await ai.files.upload({
+  file: createPartFromUri(videoUrl, "video/mp4"),
+});
+
+const result = await model.generateContent([
+  videoFile,
+  "Analyze this video and extract: transcript, key concepts, code snippets, actionable steps",
+]);
+```
+
+## Fallback: yt-dlp Extraction
+
+```bash
+# Only if direct analysis fails
+yt-dlp --no-download --write-auto-sub --sub-lang en --skip-download "$VIDEO_URL"
+```
+
+## Output Structure
+
+```markdown
+## Video Analysis: [Title]
+
+### Metadata
+
+- Duration: X:XX
+- Source: [URL]
+- Analyzed: [Timestamp]
+
+### Transcript (Timestamped)
+
+[00:00] Opening...
+[00:30] Main content...
+
+### Key Technical Operations
+
+- Commands executed
+- Code changes
+- Error handling
+
+### Actionable Insights
+
+1. Step-by-step replication guide
+2. Required tools/dependencies
+3. Potential pitfalls
+```
+
+## Anti-Patterns
+
+❌ **Don't** skip transcript generation for code-heavy videos
+❌ **Don't** assume video content from title alone
+❌ **Don't** use yt-dlp when Gemini direct analysis is available
+❌ **Don't** proceed without establishing memory context
+
+## See Also
+
+- `docs/video-prompts-catalog.md` - Full prompt catalog (13 sections)
+- `docs/hallucination_hazard_empty_transcript.md` - Error handling patterns

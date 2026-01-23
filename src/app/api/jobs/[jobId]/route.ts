@@ -3,6 +3,8 @@
  *
  * GET /api/jobs/[jobId] - Get job status and result
  * DELETE /api/jobs/[jobId] - Cancel/delete a job
+ *
+ * FIREBASE DATA CONNECT: All operations persist to Cloud SQL PostgreSQL
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -18,7 +20,8 @@ export async function GET(
 ) {
   try {
     const { jobId } = await params;
-    const job = getJob(jobId);
+    // Now async - reads from Cloud SQL
+    const job = await getJob(jobId);
 
     if (!job) {
       return NextResponse.json(
@@ -29,11 +32,12 @@ export async function GET(
 
     return NextResponse.json({
       job: formatJobResponse(job),
+      storage: "Cloud SQL PostgreSQL (Firebase Data Connect)",
     });
   } catch (error) {
     console.error("Get job error:", error);
     return NextResponse.json(
-      { error: "Failed to get job" },
+      { error: "Failed to get job", details: String(error) },
       { status: 500 }
     );
   }
@@ -45,7 +49,8 @@ export async function DELETE(
 ) {
   try {
     const { jobId } = await params;
-    const job = getJob(jobId);
+    // Now async - reads from Cloud SQL
+    const job = await getJob(jobId);
 
     if (!job) {
       return NextResponse.json(
@@ -62,16 +67,19 @@ export async function DELETE(
       );
     }
 
-    updateJobStatus(jobId, "FAILED", { error: "Cancelled by user" });
+    // Now async - writes to Cloud SQL
+    await updateJobStatus(jobId, "FAILED", { error: "Cancelled by user" } as any);
+    const updatedJob = await getJob(jobId);
 
     return NextResponse.json({
       message: "Job cancelled",
-      job: formatJobResponse(getJob(jobId)!),
+      job: formatJobResponse(updatedJob!),
+      storage: "Cloud SQL PostgreSQL (Firebase Data Connect)",
     });
   } catch (error) {
     console.error("Cancel job error:", error);
     return NextResponse.json(
-      { error: "Failed to cancel job" },
+      { error: "Failed to cancel job", details: String(error) },
       { status: 500 }
     );
   }
