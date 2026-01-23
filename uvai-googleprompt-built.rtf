@@ -1,0 +1,504 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2709
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\margl1440\margr1440\vieww11520\viewh12860\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 UVAI Blueprint is an AI-driven platform transitioning from a local prototype to a cloud-native enterprise SaaS solution, leveraging Google Cloud, Vertex AI, and Gemini. Its core mission is to transform raw video into actionable intelligence by employing a 'Digital Refinery' workflow (Ingest, Segment, Enhance, Action), adhering to Model Context Protocol (MCP) and Google AIP standards, thereby providing businesses with scalable insights derived from video for enhanced decision-making.\
+\
+Product Requirements\
+## Product Requirements Document (PRD) for UVAI Dashboard The UVAI platform's web dashboard will serve as the primary interface for users to leverage the "Digital Refinery" workflow, transforming raw video into actionable intelligence. This dashboard is designed to provide a seamless experience for submitting video content, monitoring its processing, and interacting with the AI-generated insights. **User Stories:** * **As a user, I want to submit a video URL** so that UVAI can begin its "Digital Refinery" process (Ingest, Segment, Enhance, Action) on my content. * **As a user, I want to view the real-time processing status of my video** (e.g., Ingesting, Segmenting, Enhancing, Actioning) so I can understand its progress. * **As a user, I want to see the generated code or structured data** derived from my video so I can understand the key events, entities, or insights extracted by the AI in a programmatic format. * **As a user, I want to review a list of actionable items** identified from my video content so I can make informed business decisions or take appropriate next steps. * **As a user, I want to engage with an interactive quiz** based on my video's content so I can validate my understanding of the AI's findings or test specific knowledge extracted from the video. * **As a business user, I want a clear, intuitive dashboard** to manage multiple video submissions and easily access their processed insights, adhering to enterprise standards. **Key Features:** 1. **Video URL Submission Interface:** A prominent input field and submission button for users to paste and submit video URLs for processing. This will trigger the backend's "Digital Refinery" workflow. 2. **Processing Status & Timeline Display:** A visual component that dynamically updates to show the current stage of the video processing (Ingest, Segment, Enhance, Action), providing transparency into the workflow. 3. **Generated Code/Structured Data Viewer:** A dedicated section displaying the AI-generated code snippets or structured data (e.g., JSON, YAML) that encapsulate key extracted information, events, or metadata from the video. 4. **Actionable Insights List:** A clear, itemized list of practical recommendations or actionable steps derived from the video analysis, formatted for quick comprehension and decision-making. 5. **Interactive Quiz Module:** A user-friendly interface presenting multi-choice or open-ended questions based on the video's content and AI analysis, allowing users to interactively test or confirm extracted information. --- ## Technical Build Plan\
+\
+\{\
+  "architecture": \{\
+    "frontend": \{\
+      "name": "Angular Application",\
+      "description": "Single-page application providing the user interface for video submission, status tracking, and display of insights. Interacts with the FastAPI backend via REST APIs.",\
+      "technologies": [\
+        "Angular",\
+        "TypeScript",\
+        "HTML",\
+        "CSS/SCSS"\
+      ]\
+    \},\
+    "backend": \{\
+      "name": "FastAPI Service",\
+      "description": "RESTful API gateway and orchestration layer. Handles video submission, manages processing queues, interacts with Google Cloud services (Vertex AI, Gemini for 'Digital Refinery' stages), stores and retrieves results from Supabase.",\
+      "technologies": [\
+        "FastAPI",\
+        "Python",\
+        "Pydantic",\
+        "Celery/Redis (for async tasks)",\
+        "Google Cloud SDK (Vertex AI, Gemini, Storage)"\
+      ]\
+    \},\
+    "database": \{\
+      "name": "Supabase",\
+      "description": "PostgreSQL database providing data persistence for user accounts, video metadata, processing status, generated code, action items, and quiz data. Leverages Supabase's real-time capabilities for dashboard updates.",\
+      "technologies": [\
+        "PostgreSQL",\
+        "Supabase (Auth, Realtime, Storage)"\
+      ]\
+    \}\
+  \},\
+  "frontend_components": [\
+    "DashboardLayoutComponent",\
+    "URLInputComponent",\
+    "VideoSubmissionFormComponent",\
+    "VideoListComponent",\
+    "VideoDetailsCardComponent",\
+    "ProcessingTimelineComponent",\
+    "CodeDisplayComponent",\
+    "ActionItemsListComponent",\
+    "InteractiveQuizComponent",\
+    "QuizQuestionComponent",\
+    "NotificationService",\
+    "AuthGuardService"\
+  ],\
+  "backend_endpoints": [\
+    \{\
+      "method": "POST",\
+      "path": "/videos",\
+      "description": "Submits a video URL for processing. Returns a video ID and initial status."\
+    \},\
+    \{\
+      "method": "GET",\
+      "path": "/videos",\
+      "description": "Retrieves a list of all submitted videos for the authenticated user."\
+    \},\
+    \{\
+      "method": "GET",\
+      "path": "/videos/\{video_id\}",\
+      "description": "Retrieves comprehensive details and results for a specific video."\
+    \},\
+    \{\
+      "method": "GET",\
+      "path": "/videos/\{video_id\}/status",\
+      "description": "Retrieves the current processing status of a specific video (e.g., Ingesting, Segmenting, Enhancing, Actioning, Completed, Failed)."\
+    \},\
+    \{\
+      "method": "GET",\
+      "path": "/videos/\{video_id\}/code",\
+      "description": "Retrieves the AI-generated code/structured data for a processed video."\
+    \},\
+    \{\
+      "method": "GET",\
+      "path": "/videos/\{video_id\}/actions",\
+      "description": "Retrieves the list of actionable items identified from the video."\
+    \},\
+    \{\
+      "method": "GET",\
+      "path": "/videos/\{video_id\}/quiz",\
+      "description": "Retrieves the interactive quiz questions for a processed video."\
+    \},\
+    \{\
+      "method": "POST",\
+      "path": "/videos/\{video_id\}/quiz/submit",\
+      "description": "Submits the user's answers to the quiz for a specific video."\
+    \},\
+    \{\
+      "method": "POST",\
+      "path": "/webhooks/video-processed",\
+      "description": "(Internal/System) Endpoint for Google Cloud services to notify the backend upon completion of a processing stage or the entire pipeline. Not directly exposed to frontend."\
+    \},\
+    \{\
+      "method": "POST",\
+      "path": "/auth/login",\
+      "description": "Handles user authentication and session creation."\
+    \},\
+    \{\
+      "method": "POST",\
+      "path": "/auth/register",\
+      "description": "Registers a new user account."\
+    \}\
+  ]\
+\}\
+\
+\
+\
+# main.py\
+import uuid\
+import enum\
+import os\
+from typing import Dict, Optional\
+from datetime import datetime\
+\
+from fastapi import FastAPI, HTTPException, status\
+from pydantic import BaseModel, Field, HttpUrl\
+\
+# --- Pydantic Models ---\
+\
+class VideoStatusEnum(str, enum.Enum):\
+    """\
+    Represents the various stages of video processing, aligning with the build plan.\
+    """\
+    PENDING = "PENDING"\
+    INGESTING = "INGESTING"\
+    SEGMENTING = "SEGMENTING"\
+    ENHANCING = "ENHANCING"\
+    ACTIONING = "ACTIONING"\
+    COMPLETED = "COMPLETED"\
+    FAILED = "FAILED"\
+    CANCELLED = "CANCELLED"\
+\
+class VideoSubmissionRequest(BaseModel):\
+    """\
+    Schema for submitting a new video URL for processing.\
+    """\
+    url: HttpUrl = Field(..., description="The URL of the video to be processed.")\
+\
+class VideoSubmissionResponse(BaseModel):\
+    """\
+    Response schema for a successful video submission.\
+    Returns an operation ID to track the processing status.\
+    """\
+    operation_id: uuid.UUID = Field(..., description="A unique identifier for the video processing operation.")\
+    # In a real system, video_id might be distinct from operation_id if an operation\
+    # is a specific attempt to process a video identified by video_id.\
+    # For this scaffold, they are the same.\
+    video_id: uuid.UUID = Field(..., description="A unique identifier for the submitted video resource.")\
+    status: VideoStatusEnum = Field(..., description="The initial status of the video processing operation.")\
+    message: str = Field("Video submission received successfully.", description="A descriptive message.")\
+    submitted_at: datetime = Field(default_factory=datetime.utcnow, description="Timestamp of when the video was submitted.")\
+\
+class OperationStatusResponse(BaseModel):\
+    """\
+    Schema for retrieving the status of a long-running operation.\
+    """\
+    operation_id: uuid.UUID = Field(..., description="The unique identifier of the operation.")\
+    status: VideoStatusEnum = Field(..., description="The current status of the operation.")\
+    message: str = Field(..., description="A descriptive message about the operation's current state.")\
+    progress: Optional[int] = Field(None, ge=0, le=100, description="Estimated progress percentage if available.")\
+    last_updated: datetime = Field(default_factory=datetime.utcnow, description="Timestamp of the last status update.")\
+    \
+    # Placeholder for potential results or errors\
+    result_url: Optional[str] = Field(None, description="URL to access the final results if completed.")\
+    error_details: Optional[str] = Field(None, description="Details if the operation failed.")\
+\
+# --- In-memory Store (for scaffolding purposes only) ---\
+# In a real application, this would be replaced by a database (e.g., Supabase PostgreSQL)\
+# key: operation_id (UUID), value: OperationStatusResponse\
+operations_db: Dict[uuid.UUID, OperationStatusResponse] = \{\}\
+\
+# --- FastAPI Application ---\
+app = FastAPI(\
+    title="UVAI Backend Service",\
+    description="RESTful API gateway for the UVAI platform, handling video submission and processing orchestration.",\
+    version="0.1.0",\
+    docs_url="/docs",\
+    redoc_url="/redoc",\
+)\
+\
+@app.on_event("startup")\
+async def startup_event():\
+    """\
+    Tasks to run when the application starts up.\
+    In a production environment, this is where you'd initialize\
+    database connections, message queue clients (e.g., Redis for Celery),\
+    and Google Cloud SDK clients.\
+    """\
+    print("UVAI Backend Service starting up...")\
+    # Example:\
+    # await database.connect()\
+    # celery_app.conf.broker_url = os.getenv("CELERY_BROKER_URL")\
+    # gcp_client = GoogleCloudClient(project_id=os.getenv("GCP_PROJECT_ID"))\
+\
+@app.on_event("shutdown")\
+async def shutdown_event():\
+    """\
+    Tasks to run when the application is shutting down.\
+    This is where you'd gracefully close connections and release resources.\
+    """\
+    print("UVAI Backend Service shutting down...")\
+    # Example:\
+    # await database.disconnect()\
+    # Close any open Google Cloud client sessions\
+\
+@app.get("/", summary="Root endpoint")\
+async def read_root():\
+    """\
+    A simple root endpoint to confirm the API is running.\
+    """\
+    return \{"message": "UVAI Backend Service is running!"\}\
+\
+@app.post(\
+    "/videos",\
+    response_model=VideoSubmissionResponse,\
+    status_code=status.HTTP_202_ACCEPTED,\
+    summary="Submit a video URL for processing"\
+)\
+async def submit_video(request: VideoSubmissionRequest):\
+    """\
+    **Submits a video URL for processing.**\
+\
+    This endpoint accepts a video URL, initiates an asynchronous processing workflow,\
+    and returns an `operation_id` to track its progress. The `202 Accepted` status\
+    indicates that the request has been accepted for processing, but the processing\
+    has not been completed.\
+\
+    In a real system:\
+    1.  **Validation & Persistence:** The `request.url` would be validated (e.g., format, accessibility).\
+        A new entry would be created in the Supabase database to record the video and its initial status.\
+    2.  **Asynchronous Task Dispatch:** A long-running task (e.g., using Celery with Redis as a broker)\
+        would be enqueued to handle the actual video ingestion and processing pipeline.\
+        This task would receive the `operation_id` (or `video_id`) to update its status.\
+    3.  **Operation ID:** The returned `operation_id` would correspond to the identifier\
+        used to track the background processing task in the database and message queue.\
+    """\
+    new_operation_id = uuid.uuid4()\
+    initial_status = VideoStatusEnum.PENDING\
+    \
+    # Simulate storing the operation in our in-memory DB for the scaffold\
+    # In a real app, this would be `await Supabase.table('operations').insert(...)`\
+    operations_db[new_operation_id] = OperationStatusResponse(\
+        operation_id=new_operation_id,\
+        status=initial_status,\
+        message=f"Video submission for URL: \{request.url\} initiated. Awaiting processing.",\
+        last_updated=datetime.utcnow(),\
+        progress=0\
+    )\
+    \
+    # --- Placeholder for dispatching a background task ---\
+    # Example using a hypothetical Celery task:\
+    # from your_app.tasks import process_video_task\
+    # process_video_task.delay(str(new_operation_id), str(request.url))\
+    # --- End Placeholder ---\
+\
+    return VideoSubmissionResponse(\
+        operation_id=new_operation_id,\
+        video_id=new_operation_id, # For this scaffold, video_id is the same as operation_id\
+        status=initial_status,\
+        submitted_at=operations_db[new_operation_id].last_updated\
+    )\
+\
+@app.get(\
+    "/operations/\{operation_id\}",\
+    response_model=OperationStatusResponse,\
+    summary="Retrieve the status of a long-running operation"\
+)\
+async def get_operation_status(operation_id: uuid.UUID):\
+    """\
+    **Retrieves the current status of a specific long-running operation.**\
+\
+    This allows clients (like the Angular frontend) to poll for the progress and\
+    outcome of asynchronous tasks, such as video processing.\
+\
+    In a real system:\
+    1.  The `operation_id` would be used to query the Supabase database\
+        (e.g., `await Supabase.table('operations').select('*').eq('id', operation_id).single()`)\
+        to retrieve the latest status, progress, and any associated messages or results.\
+    2.  The `message` and `progress` fields would be dynamically updated by background workers\
+        as they complete stages of the video processing pipeline.\
+    """\
+    operation = operations_db.get(operation_id)\
+    if not operation:\
+        raise HTTPException(\
+            status_code=status.HTTP_404_NOT_FOUND,\
+            detail=f"Operation with ID '\{operation_id\}' not found."\
+        )\
+    \
+    # --- Simulate status progression for demonstration purposes (in-memory) ---\
+    # In a real system, the status would be updated by background workers\
+    # and persisted in the database.\
+    current_status_index = list(VideoStatusEnum).index(operation.status)\
+    if operation.status != VideoStatusEnum.COMPLETED and operation.status != VideoStatusEnum.FAILED:\
+        if current_status_index + 1 < len(list(VideoStatusEnum)):\
+            next_status = list(VideoStatusEnum)[current_status_index + 1]\
+            operation.status = next_status\
+            operation.last_updated = datetime.utcnow()\
+\
+            # Update message and progress based on the new status\
+            status_messages = \{\
+                VideoStatusEnum.PENDING: "Video submission received, awaiting worker assignment.",\
+                VideoStatusEnum.INGESTING: "Video is being ingested and validated (e.g., fetching from URL, initial storage).",\
+                VideoStatusEnum.SEGMENTING: "Video content is being analyzed and segmented (e.g., scene detection, audio transcription).",\
+                VideoStatusEnum.ENHANCING: "Segments are being processed by AI (Vertex AI, Gemini for 'Digital Refinery' stages).",\
+                VideoStatusEnum.ACTIONING: "Actionable insights, code generation, and quiz creation in progress.",\
+                VideoStatusEnum.COMPLETED: "Video processing completed successfully. Results are ready!",\
+                VideoStatusEnum.FAILED: "Video processing failed. Please check error details or try again.",\
+                VideoStatusEnum.CANCELLED: "Video processing was cancelled."\
+            \}\
+            status_progress = \{\
+                VideoStatusEnum.PENDING: 0,\
+                VideoStatusEnum.INGESTING: 10,\
+                VideoStatusEnum.SEGMENTING: 30,\
+                VideoStatusEnum.ENHANCING: 60,\
+                VideoStatusEnum.ACTIONING: 85,\
+                VideoStatusEnum.COMPLETED: 100,\
+                VideoStatusEnum.FAILED: 100,\
+                VideoStatusEnum.CANCELLED: 100\
+            \}\
+            operation.message = status_messages.get(operation.status, "Unknown status.")\
+            operation.progress = status_progress.get(operation.status, 0)\
+\
+            if operation.status == VideoStatusEnum.COMPLETED:\
+                operation.result_url = f"/videos/\{operation_id\}" # Example URL to fetch full video details\
+        \
+    operations_db[operation_id] = operation # Update the in-memory store\
+\
+    return operation\
+\
+# --- Placeholder endpoints for other features from the Build Plan ---\
+# These are included as stubs to demonstrate the API structure,\
+# but their full implementation is beyond the scope of this scaffold.\
+\
+@app.get("/videos", summary="Retrieve a list of all submitted videos")\
+async def get_all_videos():\
+    """Retrieves a list of all submitted videos for the authenticated user."""\
+    # In a real application: Authenticate user, query Supabase for videos linked to the user.\
+    return \{"message": "List of videos (placeholder)", "data": []\}\
+\
+@app.get("/videos/\{video_id\}", summary="Retrieve comprehensive details and results for a specific video")\
+async def get_video_details(video_id: uuid.UUID):\
+    """Retrieves comprehensive details and results (metadata, status, generated content) for a specific video."""\
+    # In a real application: Query Supabase for all related data using video_id.\
+    if video_id not in operations_db:\
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Video not found.")\
+    \
+    # For scaffold, return the operation status as a basic detail.\
+    # A real response would be a complex model with insights, code, actions, etc.\
+    return \{"message": f"Details for video \{video_id\} (placeholder)", "data": operations_db[video_id]\}\
+\
+@app.get("/videos/\{video_id\}/status", summary="Retrieve the current processing status of a specific video")\
+async def get_video_specific_status(video_id: uuid.UUID):\
+    """\
+    Retrieves the current processing status of a specific video.\
+    This endpoint can directly leverage the generic /operations/\{operation_id\} logic.\
+    """\
+    return await get_operation_status(video_id)\
+\
+# Add more stubs as per the Build Plan's `backend_endpoints` array:\
+# @app.get("/videos/\{video_id\}/code")\
+# @app.get("/videos/\{video_id\}/actions")\
+# @app.get("/videos/\{video_id\}/quiz")\
+# @app.post("/videos/\{video_id\}/quiz/submit")\
+# @app.post("/webhooks/video-processed") # Internal endpoint, requires robust security\
+# @app.post("/auth/login")\
+# @app.post("/auth/register")\
+\
+\
+# --- Uvicorn entry point for local development ---\
+if __name__ == "__main__":\
+    import uvicorn\
+    # When running locally, reload=True is useful for development.\
+    # For production, this block is not used; the Dockerfile's CMD directly calls uvicorn.\
+    port = int(os.getenv("PORT", 8000))\
+    print(f"Running UVAI Backend Service locally on http://0.0.0.0:\{port\}")\
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True, workers=1)\
+\
+\
+\
+\
+\
+# Start with a multi-stage build for a smaller, more secure production image.\
+\
+# --- Stage 1: Builder ---\
+# Uses a full Python image to install dependencies, including any that require compilation.\
+FROM python:3.11-slim-buster AS builder\
+\
+# Set environment variables for Python to improve performance and stability in containers.\
+ENV PYTHONFAULTHANDLER=1 \\\
+    PYTHONUNBUFFERED=1 \\\
+    PYTHONHASHSEED=random \\\
+    PIP_NO_CACHE_DIR=off \\\
+    PIP_DISABLE_PIP_VERSION_CHECK=on \\\
+    PIP_DEFAULT_TIMEOUT=100 \\\
+    # Optional: Set default timezone if needed for consistent logging/timestamps\
+    # TZ=Etc/UTC\
+\
+# Set the working directory inside the container\
+WORKDIR /app\
+\
+# Copy the requirements file first to leverage Docker's layer caching.\
+# If requirements.txt doesn't change, this layer (and subsequent pip install) won't rebuild.\
+COPY requirements.txt .\
+\
+# Install dependencies.\
+# We explicitly list `fastapi`, `uvicorn[standard]`, and `pydantic` as they are used by the app.\
+# In a real project, this would be auto-generated by `pip freeze > requirements.txt`.\
+RUN python -m pip install --upgrade pip \\\
+    && pip install fastapi==0.109.0 uvicorn[standard]==0.27.0.post1 pydantic==2.5.3 \\\
+    # If using Celery, Supabase, Google Cloud SDK:\
+    # && pip install celery[redis] google-cloud-aiplatform psycopg2-binary \\\
+    # Cleanup pip cache to reduce image size\
+    && rm -rf /root/.cache/pip\
+\
+# --- Stage 2: Runner ---\
+# Uses a minimal base image, only copying the necessary artifacts from the builder stage.\
+FROM python:3.11-slim-buster AS runner\
+\
+# Set relevant environment variables for the runtime stage\
+ENV PYTHONFAULTHANDLER=1 \\\
+    PYTHONUNBUFFERED=1 \\\
+    PYTHONHASHSEED=random \\\
+    # Define the port your application will listen on\
+    PORT=8000\
+\
+# Create a non-root user and group for enhanced security.\
+# Running as root is a security risk.\
+RUN groupadd --gid 1000 appgroup \\\
+    && useradd --uid 1000 --gid appgroup --create-home --shell /bin/bash appuser\
+\
+# Set the working directory\
+WORKDIR /app\
+\
+# Copy only the installed Python packages from the builder stage to the runner image.\
+# This excludes build tools and other unnecessary files.\
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages\
+# Copy the uvicorn executable as well\
+COPY --from=builder /usr/local/bin/uvicorn /usr/local/bin/\
+\
+# Copy the application code into the runner image.\
+COPY . .\
+\
+# Ensure the application files are owned by the non-root user for correct permissions.\
+RUN chown -R appuser:appgroup /app\
+\
+# Switch to the non-root user. All subsequent commands will run as this user.\
+USER appuser\
+\
+# Expose the port the FastAPI application will listen on.\
+EXPOSE $\{PORT\}\
+\
+# Command to run the application using Uvicorn.\
+# For production, it's highly recommended to use Gunicorn with Uvicorn workers\
+# for better process management, robustness, and concurrency.\
+# Example with Gunicorn:\
+# CMD ["gunicorn", "main:app", "--workers", "4", "--worker-class", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000"]\
+# For this scaffold, we use Uvicorn directly for simplicity.\
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "$\{PORT\}"]\
+\
+# --- To build this image: ---\
+# 1. Create a `requirements.txt` file in the same directory as your `main.py` and Dockerfile.\
+#    It should contain:\
+#    fastapi==0.109.0\
+#    uvicorn[standard]==0.27.0.post1\
+#    pydantic==2.5.3\
+# 2. Run: `docker build -t uvai-backend:latest .`\
+#\
+# --- To run the container: ---\
+# `docker run -p 8000:8000 uvai-backend:latest`\
+#\
+# Then access the API at `http://localhost:8000` or `http://localhost:8000/docs`\
+\
+\
+3\
+ADK Workflow Graph\
+Ingest\
+(Video File)\
+\uc0\u8594 \
+Segment\
+(FastSAM)\
+\uc0\u8594 \
+Enhance\
+(Gemini 2.0)\
+\uc0\u8594 \
+Action\
+(MCP Interface)\
+Custom Instructions\
+(Define Generation Style)\
+Blueprint Organization\
+(Tag & Categorize by Topic)\
+Collaboration Hub\
+(Share Blueprint)}

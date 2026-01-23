@@ -1,432 +1,229 @@
+# Google & Claude API Reference for UVAI Platform
+
+## API Keys (Project: uvai-730bb)
+
+```bash
+# YouTube Data API
+YOUTUBE_API_KEY=AIzaSyDnzvT2S3Y27ypu-e2LIMQxWtMYhCHwpsQ
+
+# Gemini API (for direct Gemini calls)
+GEMINI_API_KEY=AIzaSyDYRg84U8byqgw9Y2wGlbWvZzY0rrAMG9w
+
+# Firebase API
+FIREBASE_API_KEY=AIzaSyBN1-LReFiX1a3xuPI-uCrM7cy4dgmFlSc
+
+# Unrestricted Master (use when other keys have permission issues)
+GOOGLE_API_KEY=AIzaSyDYRg84U8byqgw9Y2wGlbWvZzY0rrAMG9w
+```
+
 ---
-trigger: model_decision
-description: when an error happens, or api is required check here first
+
+## 1. Google Video Intelligence API
+
+**URL:** https://docs.cloud.google.com/video-intelligence/docs/reference/rest
+
+**Key Capability:** Analyze video content via URL without downloading
+
+**Endpoint:**
+
+```
+POST /v1/videos:annotate
+Service: videointelligence.googleapis.com
+```
+
+**Use Case for UVAI:**
+
+- Label detection (identify what's in the video)
+- Shot change detection (find scene transitions)
+- Text detection (extract on-screen text/code)
+- Object tracking (follow UI elements)
+
+**How to Apply:**
+Instead of downloading video, send video URL to this API for analysis.
+
 ---
 
-gcloud - manage Google Cloud resources and developer workflow
-
-DESCRIPTION
-    The gcloud CLI manages authentication, local configuration, developer
-    workflow, and interactions with the Google Cloud APIs.
-
-    cheat-sheet or see the `gcloud` CLI cheat sheet
-    (https://cloud.google.com/sdk/docs/cheatsheet).
-OTHER FLAGS
--access-token-file=ACCESS_TOKEN_FILE A file path to read the access token. Use this flag to authenticate
-        gcloud with an access token. The credentials of the active account (if
-        exists) will be ignored. The file should only contain an access token
-        with no other information. Overrides the default auth/access_token_file
-        property value for this command invocation.
-
-     --impersonate-service-account=SERVICE_ACCOUNT_EMAILS
-        For this gcloud invocation, all API requests will be made as the given
-        service account or target service account in an impersonation
-        delegation chain instead of the currently selected account. You can
-        specify either a single service account as the impersonator, or a
-        comma-separated list of service accounts to create an impersonation
-        delegation chain. The impersonation is done without needing to create,
-        download, and activate a key for the service account or accounts.
-In order to make API requests as a service account, your currently
-        selected account must have an IAM role that includes the
-        iam.serviceAccounts.getAccessToken permission for the service account
-        or accounts.
-
-        The roles/iam.serviceAccountTokenCreator role has the
-        iam.serviceAccounts.getAccessToken permission. You can also create a
-        custom role.
-
-        You can specify a list of service accounts, separated with commas. This
-        creates an impersonation delegation chain in which each service account
-        delegates its permissions to the next service account in the chain.
-        Each service account in the list must have the
-        roles/iam.serviceAccountTokenCreator role on the next service account
-        in the list. For example, when --impersonate-service-account=
-        SERVICE_ACCOUNT_1,SERVICE_ACCOUNT_2, the active account must have the
-        roles/iam.serviceAccountTokenCreator role on SERVICE_ACCOUNT_1, which
-        must have the roles/iam.serviceAccountTokenCreator role on
-        SERVICE_ACCOUNT_2. SERVICE_ACCOUNT_1 is the impersonated service
-        account and SERVICE_ACCOUNT_2 is the delegate.
+## 2. Gemini Robotics-ER 1.5 (Agentic Capabilities)
 
-        Overrides the default auth/impersonate_service_account property value
-        for this command invocation.
+**URL:** https://ai.google.dev/gemini-api/docs/robotics-overview
 
-     --log-http
-        Log all HTTP server requests and responses to stderr. Overrides the
-        default core/log_http property value for this command invocation.
+**Key Capability:** Orchestration and trajectory planning from images/video
 
-     --trace-token=TRACE_TOKEN
-        Token used to route traces of service requests for investigation of
---user-output-enabled
-        Print user intended output to the console. Overrides the default
-        core/user_output_enabled property value for this command invocation.
-        Use --no-user-output-enabled to disable.
+**Model:** `gemini-robotics-er-1.5-preview`
 
-GROUPS
-    GROUP is one of the following:
+**Agentic Features:**
 
-     access-approval
-        Manage Access Approval requests and settings.
+- **Pointing to objects** - Identify locations in images
+- **Trajectory planning** - Generate step sequences
+- **Orchestration** - Higher-level spatial reasoning
+- **Object detection** - Bounding boxes and tracking
 
-     access-context-manager
-        Manage Access Context Manager resources.
+**Python Example:**
 
-     active-directory
-        Manage Managed Microsoft AD resources.
+```python
+from google import genai
+from google.genai import types
 
-     ai
-        Manage entities in Vertex AI.
+client = genai.Client()
 
-     ai-platform
-        Manage AI Platform jobs and models.
+response = client.models.generate_content(
+    model="gemini-robotics-er-1.5-preview",
+    contents=[
+        types.Part.from_bytes(data=image_bytes, mime_type='image/jpeg'),
+        "Place points for the trajectory of moving object A to location B"
+    ],
+    config=types.GenerateContentConfig(temperature=0.5)
+)
+```
 
-     alloydb
-        Create and manage AlloyDB databases.
+**How to Apply:**
+Use for frame-by-frame analysis of video tutorials to extract UI interaction sequences.
 
-     alpha
-        (ALPHA) Alpha versions of gcloud commands.
+---
 
-     anthos
-        Anthos command Group.
+## 3. GoogleCloudPlatform/generative-ai Repository
 
-     api-gateway
-        Manage Cloud API Gateway resources.
+**URL:** https://github.com/GoogleCloudPlatform/generative-ai
 
-     apigee
-        Manage Apigee resources.
+**Structure:**
 
-     app
-        Manage your App Engine deployments.
+```
+gemini/          # Gemini samples
+search/          # Vertex AI Search
+rag-grounding/   # RAG and grounding samples
+vision/          # Image generation/editing/captioning
+audio/           # Audio processing
+setup-env/       # Environment setup guides
+```
 
-     apphub
-        Manage App Hub resources.
+**Related Repos:**
 
-     artifacts
-        Manage Artifact Registry resources.
-asset
-        Manage the Cloud Asset Inventory.
+- `google-gemini/cookbook` - Gemini API cookbook
+- `firebase/genkit` - Firebase AI samples
 
-     assured
-        Read and manipulate Assured Workloads data controls.
+**How to Apply:**
+Reference implementations for Gemini + Vision + Audio integration patterns.
 
-     audit-manager
-        Enroll resources, audit workloads and generate reports.
+---
 
-     auth
-        Manage oauth2 credentials for the Google Cloud CLI.
+## 4. Google API Gateway
 
-     backup-dr
-        Manage Backup and DR resources.
+**URL:** https://docs.cloud.google.com/api-gateway/docs/about-api-gateway
 
-     batch
-        Manage Batch resources.
+**Key Capability:** Unified REST API frontend for multiple backends
 
-     beta
-        (BETA) Beta versions of gcloud commands.
+**Benefits:**
 
-     beyondcorp
-        Manage Beyondcorp resources.
+- Secure access to Cloud Run services
+- Traffic management and rate limiting
+- API versioning without backend changes
+- Monitoring and logging built-in
 
-     bigtable
-        Manage your Cloud Bigtable storage.
+**How to Apply:**
+Front the UVAI video analysis endpoints with API Gateway for:
 
-     billing
-        Manage billing accounts and associate them with projects.
+- Rate limiting per API key
+- Authentication via Firebase Auth
+- Unified `/v1/analyze` endpoint routing to different Cloud Run services
 
-     bms
-        Manage Bare Metal Solution resources.
+---
 
-     bq
-        Manage Bq resources.
+## 5. Claude Skills Best Practices
 
-     builds
-        Create and manage builds for Google Cloud Build.
+**URL:** https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
 
-     certificate-manager
-        Manage SSL certificates for your Google Cloud projects.
+**Core Principles:**
 
-     cloud-shell
-        Manage Google Cloud Shell.
- cloudlocationfinder
-        Manage Cloudlocationfinder resources.
+1. **Concise is key** - Only add context Claude doesn't already have
+2. **Progressive disclosure** - Load detailed files only when needed
+3. **Feedback loops** - Implement verification steps
+4. **Checklists for workflows** - Track multi-step progress
 
-     colab
-        Manage Colab Enterprise resources.
+**Workflow Pattern:**
 
-     compliance-manager
-        Manage Compliance Manager resources.
+```markdown
+Copy this checklist and track progress:
 
-     components
-        List, install, update, or remove Google Cloud CLI components.
+- [ ] Step 1: Analyze input
+- [ ] Step 2: Validate assumptions
+- [ ] Step 3: Execute core logic
+- [ ] Step 4: Verify output
+- [ ] Step 5: Return results
+```
 
-     composer
-        Create and manage Cloud Composer Environments.
+**How to Apply:**
+UVAI agents should use checklist patterns for video processing pipeline steps.
 
-     compute
-        Create and manipulate Compute Engine resources.
+---
 
-     config
-        View and edit Google Cloud CLI properties.
+## 6. Claude Vision API
 
-     container
-        Deploy and manage clusters of machines for running containers.
+**URL:** https://platform.claude.com/docs/en/build-with-claude/vision
 
-     data-catalog
-        Manage Data Catalog resources.
+**Key Capability:** Multimodal image/frame analysis
 
-     database-migration
-        Manage Database Migration Service resources.
+**Usage Methods:**
 
-     dataflow
-        Manage Google Cloud Dataflow resources.
+- `claude.ai` - Direct upload
+- Console Workbench - Image blocks in prompts
+- API request - Base64 or URL
 
-     dataplex
-        Manage Dataplex resources.
-dataproc
-        Create and manage Google Cloud Dataproc clusters and jobs.
+**How to Apply:**
+For videos, extract key frames and send to Claude Vision for:
 
-     datastore
-        Manage your Cloud Datastore resources.
+- Code screenshot analysis
+- UI element identification
+- Tutorial step extraction
 
-     datastream
-        Manage Cloud Datastream resources.
+---
 
-     deploy
-        Create and manage Cloud Deploy resources.
+## 7. Claude Cookbook Highlights
 
-     deployment-manager
-        Manage deployments of cloud resources.
+**URL:** https://platform.claude.com/cookbooks
 
-     design-center
-        Manage Application Design Center resources.
-developer-connect
-        Manage Developer Connect resources.
-     dns
-        Manage your Cloud DNS managed-zones and record-sets.
-domains
-        Manage domains for your Google Cloud projects.
+**Relevant Patterns:**
 
-     edge-cache
-        Manage Media CDN resources.
+- **Programmatic tool calling (PTC)** - Reduce latency
+- **Tool search with embeddings** - Scale to many tools
+- **Automatic context compaction** - Manage long workflows
+- **Crop tool for image analysis** - Zoom into regions
+- **Multi-agent chief of staff** - Subagent orchestration
 
-     edge-cloud
-        Manage edge-cloud resources.
+**How to Apply:**
+Implement PTC for the agent chain (VTTA → CSDAA → OFSA) to reduce round-trips.
 
-     emulators
-        Set up your local development environment using emulators.
+---
 
-     endpoints
-        Create, enable and manage API services.
-eventarc
-        Manage Eventarc resources.
-filestore
-        Create and manipulate Filestore resources.
+## 8. Migrate Google AI Studio to Vertex AI
 
-     firebase
-        Work with Google Firebase.
+**URL:** https://docs.cloud.google.com/vertex-ai/generative-ai/docs/migrate/migrate-google-ai
 
-     firestore
-        Manage your Cloud Firestore resources.
+**Key Difference:**
+| Feature | Google AI (Gemini API) | Vertex AI |
+|---------|------------------------|-----------|
+| Endpoint | `generativelanguage.googleapis.com` | `aiplatform.googleapis.com` |
+| Auth | API Key or OAuth | Service Account or IAM |
+| Client | Firebase AI Logic | Vertex AI SDK |
 
-     functions
-        Manage Google Cloud Functions.
+**Migration Steps:**
 
-     gemini
-        Manage resources associated with Gemini Code Assist and Gemini Cloud
-        Assist.
-healthcare
-        Manage Cloud Healthcare resources.
+1. Create/use Google Cloud project
+2. Migrate prompts to Vertex AI Studio
+3. Upload training data if applicable
+4. Delete unused API keys
 
-     iam
-        Manage IAM service accounts and keys.
+**How to Apply:**
+UVAI can use either, but for Cloud Run production, prefer Vertex AI for service account auth.
 
-     iap
-        Manage IAP policies.
+---
 
-     identity
-        Manage Cloud Identity Groups and Memberships resources.
+## Summary: Which API for What
 
-     ids
-        Manage Cloud IDS.
-
-     immersive-stream
-        Manage Immersive Stream resources.
-
-     infra-manager
-        Manage Infra Manager resources.
-
-     kms
-        Manage cryptographic keys in the cloud.
-
-     logging
-        Manage Cloud Logging.
-
-     looker
-        Manage Looker resources.
-
-     lustre
-        Manage Lustre resources.
-managed-kafka
-        Administer Managed Service for Apache Kafka clusters, topics, and
-        consumer groups.
-
-     memcache
-        Manage Cloud Memorystore Memcached resources.
-
-     memorystore
-        Manage Memorystore resources.
-
-     metastore
-        Manage Dataproc Metastore resources.
-migration
-        The root group for various Cloud Migration teams.
-
-     ml
-        Use Google Cloud machine learning capabilities.
-
-     model-armor
-        Model Armor is a service offering LLM-agnostic security and AI safety
-        measures to mitigate risks associated with large language models
-        (LLMs).
-
-     monitoring
-        Manage Cloud Monitoring dashboards.
-
-     netapp
-        Create and manipulate Cloud NetApp Files resources.
-
-     network-connectivity
-        Manage Network Connectivity resources.
-network-management
-        Manage Network Management resources.
-
-     network-security
-        Manage Network Security resources.
-
-     network-services
-        Manage Network Services resources.
-
-     notebooks
-        Notebooks Command Group.
-
-     observability
-        Manage Observability resources.
-org-policies
-        Create and manage Organization Policies.
-
-     organizations
-        Create and manage Google Cloud Platform Organizations.
-
-     pam
-        Manage Privileged Access Manager (PAM) entitlements and grants.
-
-     parametermanager
-        Parameter Manager is a single source of truth to store, access and
-        manage the lifecycle of your application parameters.
-
-     policy-intelligence
-        A platform to help better understand, use, and manage policies at
-        scale.
-recommender
-        Manage Cloud recommendations and recommendation rules.
-
-     redis
-        Manage Cloud Memorystore Redis resources.
-
-     resource-manager
-        Manage Cloud Resources.
-
-     run
-        Manage your Cloud Run applications.
-
-     scc
-        Manage Cloud SCC resources.
-
-     scheduler
-        Manage Cloud Scheduler jobs and schedules.
-
-     secrets
-        Manage secrets on Google Cloud.
-service-directory
-        Command groups for Service Directory.
-
-     service-extensions
-        Manage Service Extensions resources.
-
-     services
-        List, enable and disable APIs and services.
-source
-        Cloud git repository commands.
-
-     source-manager
-        Manage Secure Source Manager resources.
-
-     spanner
-        Command groups for Cloud Spanner.
-
-     sql
-        Create and manage Google Cloud SQL databases.
-
-     storage
-        Create and manage Cloud Storage buckets and objects.
-
-     tasks
-        Manage Cloud Tasks queues and tasks.
-telco-automation
-        Manage Telco Automation resources.
-
-     topic
-        gcloud supplementary help.
-
-     transcoder
-        Manage Transcoder jobs and job templates.
-
-     transfer
-        Manage Transfer Service jobs, operations, and agents.
-
-vmware Manage Google Cloud VMware Engine resources.
-
-     workbench
-        Workbench Command Group.
-
-     workflows
-        Manage your Cloud Workflows resources.
-
-     workspace-add-ons
-        Manage Google Workspace Add-ons resources.
-
-     workstations
-        Manage Cloud Workstations resources.
-
-COMMANDS COMMAND is one of the following:
-
-cheat-sheet=Display gcloud cheat sheet.
-help= Search gcloud help text.
-info=Display information on the current gcloud environment.
-init=Initialize or reinitialize gcloud.
-version= Print version information for Google Cloud CLI components.
-
-https://console.cloud.google.com/welcome?project=uvai-730bb
-
-https://docs.cloud.google.com/docs/samples
-
-https://platform.openai.com/docs/guides/speech-to-text
-
-https://docs.cloud.google.com/vertex-ai/docs
-
-https://js.api.genkit.dev/
-
-https://docs.cloud.google.com/vertex-ai/docs/glossary
-
-https://github.com/openai/whisper
-
-https://python.api.genkit.dev/
-
-https://genkit.dev/docs/tutorials/summarize-youtube-videos/
-
-https://developers.google.com/apis-explorer
-
-https://geminicli.com/
-
-https://docs.cloud.google.com/vertex-ai/docs/predictions/get-online-predictions
-
-https://docs.cloud.google.com/vertex-ai/docs
+| Task                      | API to Use                 |
+| ------------------------- | -------------------------- |
+| Video content analysis    | Video Intelligence API     |
+| Frame trajectory/planning | Gemini Robotics-ER 1.5     |
+| Code screenshot analysis  | Claude Vision              |
+| Multi-agent orchestration | Claude Skills + SDK        |
+| API management            | Google API Gateway         |
+| Production deployment     | Vertex AI (not Gemini API) |

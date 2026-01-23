@@ -1,0 +1,649 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2709
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fnil\fcharset134 PingFangSC-Regular;\f2\fswiss\fcharset0 Helvetica-Bold;
+\f3\fnil\fcharset0 LucidaGrande-Bold;\f4\fmodern\fcharset0 Courier;\f5\froman\fcharset0 Times-Roman;
+\f6\fmodern\fcharset0 Courier-Bold;\f7\froman\fcharset0 Times-Bold;}
+{\colortbl;\red255\green255\blue255;\red219\green219\blue223;\red24\green24\blue24;\red251\green251\blue251;
+\red38\green38\blue38;\red0\green0\blue0;\red121\green121\blue121;\red223\green219\blue218;\red202\green202\blue202;
+\red117\green149\blue255;\red238\green88\blue85;\red99\green112\blue125;\red91\green165\blue255;\red211\green171\blue250;
+\red134\green196\blue255;\red242\green139\blue64;\red157\green172\blue187;}
+{\*\expandedcolortbl;;\cssrgb\c88627\c88627\c89804;\cssrgb\c12157\c12157\c12157;\cssrgb\c98824\c98824\c98824;
+\cssrgb\c19608\c19608\c19608;\cssrgb\c0\c0\c0;\cssrgb\c54902\c54902\c54902;\cssrgb\c89804\c88627\c88235;\cssrgb\c83137\c83137\c83137;
+\cssrgb\c52941\c66275\c100000;\cssrgb\c95686\c43922\c40392;\cssrgb\c46275\c51373\c56471;\cssrgb\c42353\c71373\c100000;\cssrgb\c86275\c74118\c98431;
+\cssrgb\c58824\c81569\c100000;\cssrgb\c96471\c61569\c31373;\cssrgb\c67843\c72941\c78039;}
+{\*\listtable{\list\listtemplateid1\listhybrid{\listlevel\levelnfc0\levelnfcn0\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{decimal\}}{\leveltext\leveltemplateid1\'01\'00;}{\levelnumbers\'01;}\fi-360\li720\lin720 }{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{circle\}}{\leveltext\leveltemplateid2\'01\uc0\u9702 ;}{\levelnumbers;}\fi-360\li1440\lin1440 }{\listname ;}\listid1}
+{\list\listtemplateid2\listhybrid{\listlevel\levelnfc0\levelnfcn0\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{decimal\}}{\leveltext\leveltemplateid101\'01\'00;}{\levelnumbers\'01;}\fi-360\li720\lin720 }{\listname ;}\listid2}
+{\list\listtemplateid3\listhybrid{\listlevel\levelnfc0\levelnfcn0\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{decimal\}}{\leveltext\leveltemplateid201\'01\'00;}{\levelnumbers\'01;}\fi-360\li720\lin720 }{\listname ;}\listid3}
+{\list\listtemplateid4\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid301\'01\uc0\u8226 ;}{\levelnumbers;}\fi-360\li720\lin720 }{\listname ;}\listid4}
+{\list\listtemplateid5\listhybrid{\listlevel\levelnfc0\levelnfcn0\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{decimal\}}{\leveltext\leveltemplateid401\'01\'00;}{\levelnumbers\'01;}\fi-360\li720\lin720 }{\listname ;}\listid5}}
+{\*\listoverridetable{\listoverride\listid1\listoverridecount0\ls1}{\listoverride\listid2\listoverridecount0\ls2}{\listoverride\listid3\listoverridecount0\ls3}{\listoverride\listid4\listoverridecount0\ls4}{\listoverride\listid5\listoverridecount0\ls5}}
+\margl1440\margr1440\vieww11520\viewh12860\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 YouTube Skill Video Automation Platform -Coordination Plan\
+\
+## Problem Analysis\
+\
+- Current: Basic React app with inline styles and basic navigation\
+- Need: Professional YouTube skill video automation platform\
+- Infrastructure: Existing MCP/A2A/ARM infrastructure with tools\
+- Challenge: ProtocolMutator requires file system access across 5 directories\
+- Goal: Modern UI/UX with seamless MCP backend integration\
+\
+### 1. UI/UX FRAMEWORK RECOMMENDATION\
+\
+- [ ] Request assessment of best UI framework for YouTube automation platform\
+- [ ] Get recommendation on Material Design 3 vs alternatives for this use case\
+- [ ] Evaluate component library options (MUI, Ant Design, Chakra UI, etc.)\
+- [ ] Assess animation/motion design requirements for video platform\
+\
+### 2. MCP INTEGRATION STRATEGY\
+\
+- [ ] Request optimal approach for React-MCP communication\
+- [ ] Get recommendations for WebSocket vs HTTP for real-time features\
+- [ ] Assess state management strategy (Zustand, Redux, Context API)\
+- [ ] Review authentication flow for MCP backend\
+\
+\
+## Expected Deliverables from  4\
+\
+1. **Complete UI/UX redesign plan** with specific framework and component recommendations\
+2. **MCP integration implementation guide** with code examples and patterns\
+3. **File system access security setup** with implementation steps\
+4. **Step-by-step implementation roadmap** prioritized by impact and complexity\
+\
+\
+**Primary Choice: React + Material-UI (MUI) v5**\
+\
+- Reasoning: MUI v5 aligns with Material Design 3 principles already integrated in   connector\
+- Existing codebase uses React - minimize disruption\
+- MUI provides comprehensive component library for video platforms\
+- Built-in theming system matches   connector's MD3 color tokens\
+\
+**Implementation Steps:**\
+\
+- [ ] Install MUI v5: `npm install @mui/material @emotion/react @emotion/styled`\
+- [ ] Install MUI icons: `npm install @mui/icons-material`\
+- [ ] Create theme provider using   connector's MD3 color scheme\
+- [ ] Replace inline styles with MUI components systematically\
+\
+### 2. MCP Integration Architecture\
+\
+**Recommended Pattern: WebSocket + HTTP Hybrid**\
+\
+- WebSocket for real-time video processing updates\
+- HTTP for standard CRUD operations and file uploads\
+- Existing MCP server supports both patterns\
+\
+**State Management: Zustand**\
+\
+- Lighter than Redux, perfect for React integration\
+- Works well with WebSocket real-time updates\
+- Maintains compatibility with existing useState patterns\
+\
+**Implementation Steps:**\
+\
+- [ ] Create WebSocket service layer connecting to MCP server\
+- [ ] Implement Zustand store for video processing state\
+- [ ] Add HTTP client for MCP API endpoints\
+- [ ] Create React hooks for MCP operations\
+\
+### 3. File System Security Implementation\
+\
+**Secure Access Pattern: Sandboxed API Gateway**\
+\
+- ProtocolMutator runs server-side with restricted permissions\
+- Frontend communicates through secure API endpoints\
+- File operations logged and audited\
+- Container-based isolation for enhanced security\
+\
+**Directory Access Strategy:**\
+\
+- `/protocols/` - Read-only access via API endpoints\
+- `/memory/` - Structured data access through database abstraction\
+- `/agents/` - Configuration access via secure API\
+- `/connectors/` - Status and configuration through management interface\
+- `/utils/` - Logging access via centralized logging service\
+\
+### 4. YouTube Automation Platform Architecture\
+\
+**Component Structure:**\
+\
+```\
+src/\
+
+\f1 \'a9\'c0
+\f0 \uc0\u9472 \u9472  components/\
+\uc0\u9474    
+\f1 \'a9\'c0
+\f0 \uc0\u9472 \u9472  video/\
+\uc0\u9474    \u9474    
+\f1 \'a9\'c0
+\f0 \uc0\u9472 \u9472  VideoEditor.tsx\
+\uc0\u9474    \u9474    
+\f1 \'a9\'c0
+\f0 \uc0\u9472 \u9472  ProcessingStatus.tsx\
+\uc0\u9474    \u9474    \u9492 \u9472 \u9472  UploadManager.tsx\
+\uc0\u9474    
+\f1 \'a9\'c0
+\f0 \uc0\u9472 \u9472  ui/\
+\uc0\u9474    \u9474    
+\f1 \'a9\'c0
+\f0 \uc0\u9472 \u9472  Dashboard.tsx\
+\uc0\u9474    \u9474    
+\f1 \'a9\'c0
+\f0 \uc0\u9472 \u9472  Navigation.tsx\
+\uc0\u9474    \u9474    \u9492 \u9472 \u9472  StatusCards.tsx\
+\uc0\u9474    \u9492 \u9472 \u9472  mcp/\
+\uc0\u9474        
+\f1 \'a9\'c0
+\f0 \uc0\u9472 \u9472  MCPConnector.tsx\
+\uc0\u9474        
+\f1 \'a9\'c0
+\f0 \uc0\u9472 \u9472  ProtocolManager.tsx\
+\uc0\u9474        \u9492 \u9472 \u9472  Tools.tsx\
+
+\f1 \'a9\'c0
+\f0 \uc0\u9472 \u9472  services/\
+\uc0\u9474    
+\f1 \'a9\'c0
+\f0 \uc0\u9472 \u9472  mcpWebSocket.ts\
+\uc0\u9474    
+\f1 \'a9\'c0
+\f0 \uc0\u9472 \u9472  mcpHttp.ts\
+\uc0\u9474    
+\f1 \'a9\'c0
+\f0 \uc0\u9472 \u9472  videoProcessing.ts\
+\uc0\u9474    \u9492 \u9472 \u9472  fileManager.ts\
+
+\f1 \'a9\'c0
+\f0 \uc0\u9472 \u9472  stores/\
+\uc0\u9474    
+\f1 \'a9\'c0
+\f0 \uc0\u9472 \u9472  videoStore.ts\
+\uc0\u9474    
+\f1 \'a9\'c0
+\f0 \uc0\u9472 \u9472  mcpStore.ts\
+\uc0\u9474    \u9492 \u9472 \u9472  authStore.ts\
+\uc0\u9492 \u9472 \u9472  hooks/\
+    
+\f1 \'a9\'c0
+\f0 \uc0\u9472 \u9472  useMCPConnection.ts\
+    
+\f1 \'a9\'c0
+\f0 \uc0\u9472 \u9472  useVideoProcessing.ts\
+    \uc0\u9492 \u9472 \u9472  useProtocolMutation.ts\
+```\
+\
+\
+**Protocol 1: Semantic Tokenization via MCP:** The system must utilize the Model Context Protocol (MCP) to standardize communication between the AI agents and the Figma API. This allows the **Token Manager Agent** to autonomously define and write semantic variables (e.g., `sys.color.primary`, `sys.spacing.md`) directly into the Figma file's local variable collection, ensuring a "single source of truth" that scales.\
+\
+**Protocol 2: Atomic Component Assembly:** The **Visual Construction Agent** must follow Atomic Design principles. It should first generate "atoms" (buttons, inputs) using strict Auto Layout constraints, then combine them into "molecules" (cards, navbars). This agent requires read/write access to the Figma Node graph to manipulate vector paths and layer hierarchies programmatically.\
+\
+**Protocol 3: Automated Accessibility Governance:** A dedicated **QA/Audit Agent** must run in parallel, analyzing generated layers for WCAG 2.2 contrast compliance and touch-target sizing (min 44px). It acts as a gatekeeper, flagging or auto-correcting non-compliant elements before they are finalized in the library.\
+\
+\
+\
+\
+In the context of the selected video and the generated agent plan, create a Python script that uses MediaPipe to detect human poses and gestures, and then outputs a JSON array of time-coded action events that can be fed into the MCP server resource.\
+\
+\
+Incremental Control\
+\
+Agent Handshake\
+Modify the multi-agent task delegation and Redis event bus flow.\
+\
+\
+Security & mTLS\
+Strengthen bridge authentication and data residency rules.\
+\
+Unlike chat-based iteration which can wildly drift, EEA ensures changes are bounded by the isolated pivot you choose.\
+\
+Code-First Grounding\
+Extractions are built from the 'King-Code' - the actual state of your infra. The AI always reasons from verified reality.\
+\
+Predictable ROI\
+Refining specifications directly allows for precise tuning of scaling parameters to hit target enterprise efficiency goals.\
+\
+"Synthesized hybrid architecture: Edge (TFLite/Beam Direct Runner) -> Pub/Sub -> Dataflow -> BigQuery."\
+\
+\
+decoupling of compute and storage (Shuffle Service) and the handling of out-of-order data via Watermarks and Triggers. \
+\
+The proposed strategy leverages these cloud-native capabilities but introduces an Edge-Cloud hybrid layer to optimize ingress costs. By pushing preliminary windowing and filtering to the edge using lightweight runners, we reduce cloud overhead while maintaining high-fidelity intelligence for global aggregation in Dataflow."\
+\
+\
+Unified Batch/Stream Declaration\
+\
+\
+Watermark Visualization\
+\
+\
+Liquid Sharding / Dynamic Rebalancing\
+\
+Verified Reasoning Traceability\
+Download Audit Log\
+\
+Logic Step \
+Verified Grounding\
+"Analyzed video intake focusing on 'Streaming Engine' capabilities."\
+\
+2\
+Logic Step 2\
+Verified Grounding\
+"Identified key operational bottleneck: Network latency and ingress cost for raw video data."\
+\
+3\
+Logic Step 3\
+Verified Grounding\
+"Correlated 'Dynamic Work Rebalancing' feature with need for elastic cloud compute."\
+\
+4\
+Logic Step 4\
+Verified Grounding\
+"Determined 'Edge vs Cloud' split: Edge handles high-frequency noise (filtering), Cloud handles high-complexity state (aggregations)."\
+\
+5\
+Logic Step 5\
+Verified Grounding\
+"Mapped Apache Beam's 'Windowing' concepts to the requirement for temporal alignment of distributed sensor data."\
+\
+6\
+Logic Step 6\
+Verified Grounding\
+"Synthesized hybrid architecture: Edge (TFLite/Beam Direct Runner) -> Pub/Sub -> Dataflow -> BigQuery."\
+\
+\pard\pardeftab720\sa360\partightenfactor0
+
+\fs28 \cf2 \cb3 \expnd0\expndtw0\kerning0
+This is an excellent and forward-thinking request. You're essentially asking to build one of the core components of the "Local Perception Engine" that the application simulates. This script acts as a specialized agent tool that transforms raw video data into structured, semantic events\'97the exact kind of data an AI agent co-op would thrive on.\
+By using MediaPipe for pose and gesture detection, we can create a high-fidelity event stream that captures the human actor's intent within the video. This stream can then be fed into your "MCP server resource" to provide real-time, actionable intelligence to the rest of the agent network.\
+Here is the Python script designed to fulfill this role. It's built to be a reusable, command-line tool that processes a video file and generates the time-coded JSON event log you specified.\
+\pard\pardeftab720\partightenfactor0
+
+\f2\b\fs24 \cf2 How it Works\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\sa60\partightenfactor0
+\ls1\ilvl0
+\fs28 \cf2 \kerning1\expnd0\expndtw0 {\listtext	1	}\expnd0\expndtw0\kerning0
+Dual Analysis
+\f0\b0 : The script uses two MediaPipe models simultaneously:\cb1 \
+\pard\tx940\tx1440\pardeftab720\li1440\fi-1440\sa60\partightenfactor0
+\ls1\ilvl1
+\f2\b \cf2 \cb3 \kerning1\expnd0\expndtw0 {\listtext	
+\f3 \uc0\u9702 
+\f2 	}\expnd0\expndtw0\kerning0
+Gesture Recognizer
+\f0\b0 : To identify specific hand gestures like\'a0
+\f4\fs26 \cf4 \cb5 pointing_up
+\f0\fs28 \cf2 \cb3 ,\'a0
+\f4\fs26 \cf4 \cb5 thumb_up
+\f0\fs28 \cf2 \cb3 ,\'a0
+\f4\fs26 \cf4 \cb5 victory
+\f0\fs28 \cf2 \cb3 , etc.\cb1 \
+\ls1\ilvl1
+\f2\b \cb3 \kerning1\expnd0\expndtw0 {\listtext	
+\f3 \uc0\u9702 
+\f2 	}\expnd0\expndtw0\kerning0
+Pose Landmarker
+\f0\b0 : To detect the full human body pose, which we use to derive actions like "Left arm raised" or "Right arm raised."\cb1 \
+\pard\tx220\tx720\pardeftab720\li720\fi-720\sa60\partightenfactor0
+\ls1\ilvl0
+\f2\b \cf2 \cb3 \kerning1\expnd0\expndtw0 {\listtext	2	}\expnd0\expndtw0\kerning0
+Time-Coding
+\f0\b0 : It processes the video frame by frame, calculating the precise timestamp for each frame to ensure the output events are accurately synchronized.\cb1 \
+\ls1\ilvl0
+\f2\b \cb3 \kerning1\expnd0\expndtw0 {\listtext	3	}\expnd0\expndtw0\kerning0
+Event Generation
+\f0\b0 : When a gesture or a significant pose is detected with a confidence score above a certain threshold, it generates a JSON object describing that event.\cb1 \
+\ls1\ilvl0
+\f2\b \cb3 \kerning1\expnd0\expndtw0 {\listtext	4	}\expnd0\expndtw0\kerning0
+Structured Output
+\f0\b0 : The final output is a single JSON file containing an array of all detected events, ready to be ingested by another service.\cb1 \
+\pard\pardeftab720\partightenfactor0
+\cf0 \cb3 \
+\pard\pardeftab720\partightenfactor0
+
+\f2\b\fs24 \cf2 Prerequisites\
+\pard\pardeftab720\sa360\partightenfactor0
+
+\f0\b0\fs28 \cf2 You'll need to install the required Python libraries. You will also need to download a gesture recognizer model from MediaPipe.\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\sa60\partightenfactor0
+\ls2\ilvl0
+\f2\b \cf2 \kerning1\expnd0\expndtw0 {\listtext	1	}\expnd0\expndtw0\kerning0
+Install Libraries:
+\f0\b0 \cb1 \uc0\u8232 
+\f5\fs36 \cf7 \cb3 code\cb1 \uc0\u8232 
+\f0\fs28 \cf8 \cb3 Bash\cb1 \uc0\u8232 \u8232 
+\f4\fs26 \cf9 \cb3 pip install opencv-python mediapipe\cb1 \uc0\u8232 
+\f0\fs28 \cf8 \cb3 \uc0\u8232 \cf2 \cb1 \
+\ls2\ilvl0
+\f2\b \cb3 \kerning1\expnd0\expndtw0 {\listtext	2	}\expnd0\expndtw0\kerning0
+Download Gesture Model:
+\f0\b0 \cb1 \uc0\u8232 \cb3 Download the\'a0
+\f4\fs26 \cf4 \cb5 gesture_recognizer.task
+\f0\fs28 \cf2 \cb3 \'a0model file from\'a0{\field{\*\fldinst{HYPERLINK "https://www.google.com/url?sa=E&q=https%3A%2F%2Fdevelopers.google.com%2Fmediapipe%2Fsolutions%2Fvision%2Fgesture_recognizer%23models"}}{\fldrslt \cf10 Google's MediaPipe documentation}}. Place this file in the same directory as the Python script.\cb1 \
+\pard\pardeftab720\partightenfactor0
+\cf0 \cb3 \
+\pard\pardeftab720\partightenfactor0
+
+\f2\b\fs24 \cf2 The Python Script:\'a0
+\f6\fs22 \cf4 \cb5 process_video_events.py
+\f2\fs24 \cf2 \cb3 \
+\pard\pardeftab720\partightenfactor0
+
+\f5\b0\fs36 \cf7 code\cb1 \
+
+\f0\fs28 \cf8 \cb3 Python\cb1 \
+\
+
+\f4\fs26 \cf11 \cb3 import\cf9  cv2\
+\cf11 import\cf9  mediapipe \cf11 as\cf9  mp\
+\cf11 import\cf9  numpy \cf11 as\cf9  np\
+\cf11 import\cf9  json\
+\cf11 import\cf9  argparse\
+\cf11 import\cf9  os\
+\cf11 from\cf9  mediapipe.tasks \cf11 import\cf9  python\
+\cf11 from\cf9  mediapipe.tasks.python \cf11 import\cf9  vision\
+\
+\cf12 # Define a threshold for detecting a "raised arm" based on shoulder and wrist positions.\cf9 \
+\cf12 # This value may need tuning depending on the video's perspective.\cf9 \
+ARM_RAISED_THRESHOLD = \cf13 0.15\cf9 \
+\
+\cf11 def\cf9  \cf14 create_event\cf9 (timestamp_ms, event_type, data, confidence):\
+    \cf15 """Helper function to create a structured event dictionary."""\cf9 \
+    \cf11 return\cf9  \{\
+        \cf15 "timestamp_ms"\cf9 : \cf16 int\cf9 (timestamp_ms),\
+        \cf15 "timestamp_str"\cf9 : \cf15 f"\cf17 \{\cf16 int\cf17 (timestamp_ms // \cf13 60000\cf17 ):02d\}\cf15 :\cf17 \{\cf16 int\cf17 ((timestamp_ms % \cf13 60000\cf17 ) // \cf13 1000\cf17 ):02d\}\cf15 .\cf17 \{\cf16 int\cf17 (timestamp_ms % \cf13 1000\cf17 ):03d\}\cf15 "\cf9 ,\
+        \cf15 "event_type"\cf9 : event_type,\
+        \cf15 "data"\cf9 : data,\
+        \cf15 "confidence"\cf9 : \cf16 float\cf9 (confidence)\
+    \}\
+\
+\cf11 def\cf9  \cf14 analyze_video\cf9 (video_path: \cf16 str\cf9 , model_path: \cf16 str\cf9 , output_path: \cf16 str\cf9 ):\
+    \cf15 """\
+    Analyzes a video file for human poses and gestures to generate a JSON event log.\
+\
+    Args:\
+        video_path: Path to the input video file.\
+        model_path: Path to the MediaPipe gesture recognizer .task model file.\
+        output_path: Path to write the output JSON file.\
+    """\cf9 \
+    \cf11 if\cf9  \cf11 not\cf9  os.path.exists(video_path):\
+        print(\cf15 f"Error: Video file not found at \cf17 \{video_path\}\cf15 "\cf9 )\
+        \cf11 return\cf9 \
+\
+    \cf11 if\cf9  \cf11 not\cf9  os.path.exists(model_path):\
+        print(\cf15 f"Error: MediaPipe model not found at \cf17 \{model_path\}\cf15 . Please download it."\cf9 )\
+        \cf11 return\cf9 \
+\
+    \cf12 # --- 1. INITIALIZE MEDIAPIPE MODELS ---\cf9 \
+    \
+    \cf12 # Base options for both models\cf9 \
+    base_options = python.BaseOptions(model_asset_path=model_path)\
+    \
+    \cf12 # Gesture Recognizer options\cf9 \
+    gesture_options = vision.GestureRecognizerOptions(\
+        base_options=base_options,\
+        running_mode=vision.RunningMode.VIDEO,\
+        num_hands=\cf13 2\cf9  \cf12 # Detect up to 2 hands\cf9 \
+    )\
+    \cf12 # Pose Landmarker options\cf9 \
+    pose_options = vision.PoseLandmarkerOptions(\
+        base_options=python.BaseOptions(model_asset_path=\cf15 'pose_landmarker_heavy.task'\cf9 ),\
+        running_mode=vision.RunningMode.VIDEO,\
+    )\
+\
+    \cf12 # Create the recognizer and landmarker instances\cf9 \
+    gesture_recognizer = vision.GestureRecognizer.create_from_options(gesture_options)\
+    pose_landmarker = vision.PoseLandmarker.create_from_options(pose_options)\
+\
+    \cf12 # --- 2. PROCESS VIDEO FILE ---\cf9 \
+    \
+    cap = cv2.VideoCapture(video_path)\
+    fps = cap.get(cv2.CAP_PROP_FPS)\
+    \cf11 if\cf9  \cf11 not\cf9  cap.isOpened():\
+        print(\cf15 f"Error: Could not open video file \cf17 \{video_path\}\cf15 "\cf9 )\
+        \cf11 return\cf9 \
+        \
+    print(\cf15 f"Processing video: \cf17 \{video_path\}\cf15  at \cf17 \{fps:\cf13 .2\cf17 f\}\cf15  FPS"\cf9 )\
+    \
+    events = []\
+    last_detected_gestures = \{\}\
+    last_detected_poses = \{\}\
+\
+    frame_idx = \cf13 0\cf9 \
+    \cf11 while\cf9  cap.isOpened():\
+        ret, frame = cap.read()\
+        \cf11 if\cf9  \cf11 not\cf9  ret:\
+            \cf11 break\cf9 \
+\
+        timestamp_ms = (frame_idx / fps) * \cf13 1000\cf9 \
+        \
+        \cf12 # Convert frame to MediaPipe Image format\cf9 \
+        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)\
+\
+        \cf12 # --- 3. RUN DETECTION ---\cf9 \
+        gesture_result = gesture_recognizer.recognize_for_video(mp_image, \cf16 int\cf9 (timestamp_ms))\
+        pose_result = pose_landmarker.detect_for_video(mp_image, \cf16 int\cf9 (timestamp_ms))\
+        \
+        \cf12 # --- 4. PARSE AND STORE EVENTS ---\cf9 \
+\
+        \cf12 # Parse Gestures\cf9 \
+        \cf11 if\cf9  gesture_result.gestures:\
+            \cf11 for\cf9  i, gesture_list \cf11 in\cf9  \cf16 enumerate\cf9 (gesture_result.gestures):\
+                \cf11 if\cf9  gesture_list:\
+                    top_gesture = gesture_list[\cf13 0\cf9 ]\
+                    hand = gesture_result.handedness[i][\cf13 0\cf9 ].display_name\
+                    gesture_key = \cf15 f"\cf17 \{hand\}\cf15 _\cf17 \{top_gesture.category_name\}\cf15 "\cf9 \
+\
+                    \cf12 # Only log event if it's new or different from the last one\cf9 \
+                    \cf11 if\cf9  last_detected_gestures.get(hand) != top_gesture.category_name:\
+                        event = create_event(\
+                            timestamp_ms, \
+                            \cf15 "gesture_recognized"\cf9 ,\
+                            \{\cf15 "hand"\cf9 : hand, \cf15 "gesture"\cf9 : top_gesture.category_name\},\
+                            top_gesture.score\
+                        )\
+                        events.append(event)\
+                        last_detected_gestures[hand] = top_gesture.category_name\
+\
+        \cf12 # Parse Poses\cf9 \
+        \cf11 if\cf9  pose_result.pose_landmarks:\
+            \cf11 for\cf9  landmarks \cf11 in\cf9  pose_result.pose_landmarks:\
+                \cf12 # Check for raised left arm\cf9 \
+                left_shoulder = landmarks[mp.solutions.pose.PoseLandmark.LEFT_SHOULDER]\
+                left_wrist = landmarks[mp.solutions.pose.PoseLandmark.LEFT_WRIST]\
+                \cf11 if\cf9  left_wrist.y < left_shoulder.y - ARM_RAISED_THRESHOLD:\
+                    \cf11 if\cf9  \cf11 not\cf9  last_detected_poses.get(\cf15 "left_arm_raised"\cf9 ):\
+                        event = create_event(timestamp_ms, \cf15 "pose_detected"\cf9 , \{\cf15 "pose"\cf9 : \cf15 "left_arm_raised"\cf9 \}, left_wrist.visibility)\
+                        events.append(event)\
+                        last_detected_poses[\cf15 "left_arm_raised"\cf9 ] = \cf13 True\cf9 \
+                \cf11 else\cf9 :\
+                    last_detected_poses[\cf15 "left_arm_raised"\cf9 ] = \cf13 False\cf9 \
+\
+                \cf12 # Check for raised right arm\cf9 \
+                right_shoulder = landmarks[mp.solutions.pose.PoseLandmark.RIGHT_SHOULDER]\
+                right_wrist = landmarks[mp.solutions.pose.PoseLandmark.RIGHT_WRIST]\
+                \cf11 if\cf9  right_wrist.y < right_shoulder.y - ARM_RAISED_THRESHOLD:\
+                    \cf11 if\cf9  \cf11 not\cf9  last_detected_poses.get(\cf15 "right_arm_raised"\cf9 ):\
+                        event = create_event(timestamp_ms, \cf15 "pose_detected"\cf9 , \{\cf15 "pose"\cf9 : \cf15 "right_arm_raised"\cf9 \}, right_wrist.visibility)\
+                        events.append(event)\
+                        last_detected_poses[\cf15 "right_arm_raised"\cf9 ] = \cf13 True\cf9 \
+                \cf11 else\cf9 :\
+                    last_detected_poses[\cf15 "right_arm_raised"\cf9 ] = \cf13 False\cf9 \
+\
+        frame_idx += \cf13 1\cf9 \
+\
+    \cf12 # --- 5. CLEAN UP AND SAVE ---\cf9 \
+    \
+    cap.release()\
+    print(\cf15 f"Processed \cf17 \{frame_idx\}\cf15  frames. Found \cf17 \{\cf16 len\cf17 (events)\}\cf15  events."\cf9 )\
+\
+    \cf11 with\cf9  \cf16 open\cf9 (output_path, \cf15 'w'\cf9 ) \cf11 as\cf9  f:\
+        json.dump(events, f, indent=\cf13 2\cf9 )\
+    print(\cf15 f"Successfully saved event log to \cf17 \{output_path\}\cf15 "\cf9 )\
+\
+\
+\cf11 if\cf9  __name__ == \cf15 '__main__'\cf9 :\
+    parser = argparse.ArgumentParser(description=\cf15 "Analyze a video for poses and gestures using MediaPipe."\cf9 )\
+    parser.add_argument(\
+        \cf15 "--input_video"\cf9 , \
+        \cf16 type\cf9 =\cf16 str\cf9 , \
+        required=\cf13 True\cf9 , \
+        \cf16 help\cf9 =\cf15 "Path to the input video file."\cf9 \
+    )\
+    parser.add_argument(\
+        \cf15 "--output_json"\cf9 , \
+        \cf16 type\cf9 =\cf16 str\cf9 , \
+        default=\cf15 "action_events.json"\cf9 , \
+        \cf16 help\cf9 =\cf15 "Path to the output JSON file for time-coded events."\cf9 \
+    )\
+    parser.add_argument(\
+        \cf15 "--model"\cf9 ,\
+        \cf16 type\cf9 =\cf16 str\cf9 ,\
+        default=\cf15 "gesture_recognizer.task"\cf9 ,\
+        \cf16 help\cf9 =\cf15 "Path to the MediaPipe gesture recognizer model (.task file)."\cf9 \
+    )\
+    \
+    args = parser.parse_args()\
+    \
+    analyze_video(args.input_video, args.model, args.output_json)\cb1 \
+\pard\pardeftab720\partightenfactor0
+
+\f2\b\fs24 \cf2 \cb3 How to Run the Script\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\sa60\partightenfactor0
+\ls3\ilvl0
+\f0\b0\fs28 \cf2 \kerning1\expnd0\expndtw0 {\listtext	1	}\expnd0\expndtw0\kerning0
+Save the code above as\'a0
+\f4\fs26 \cf4 \cb5 process_video_events.py
+\f0\fs28 \cf2 \cb3 .\cb1 \
+\ls3\ilvl0\cb3 \kerning1\expnd0\expndtw0 {\listtext	2	}\expnd0\expndtw0\kerning0
+Make sure you have a video file (e.g.,\'a0
+\f4\fs26 \cf4 \cb5 my_tutorial.mp4
+\f0\fs28 \cf2 \cb3 ) and the\'a0
+\f4\fs26 \cf4 \cb5 gesture_recognizer.task
+\f0\fs28 \cf2 \cb3 \'a0model file in the same folder.\cb1 \
+\ls3\ilvl0\cb3 \kerning1\expnd0\expndtw0 {\listtext	3	}\expnd0\expndtw0\kerning0
+Run the script from your terminal:\cb1 \uc0\u8232 
+\f5\fs36 \cf7 \cb3 code\cb1 \uc0\u8232 
+\f0\fs28 \cf8 \cb3 Bash\cb1 \uc0\u8232 \u8232 
+\f4\fs26 \cf9 \cb3 python process_video_events.py \cf12 --input_video my_tutorial.mp4 --output_json my_tutorial_events.json\cf9 \cb1 \uc0\u8232 
+\f0\fs28 \cf8 \cb3 \uc0\u8232 \cf2 \cb1 \
+\pard\pardeftab720\partightenfactor0
+
+\f2\b\fs24 \cf2 \cb3 Example JSON Output (
+\f6\fs22 \cf4 \cb5 my_tutorial_events.json
+\f2\fs24 \cf2 \cb3 )\
+\pard\pardeftab720\sa360\partightenfactor0
+
+\f0\b0\fs28 \cf2 The script will produce a file like this, which is perfectly structured to be consumed by your MCP server or any other agent in the workflow:\
+\pard\pardeftab720\partightenfactor0
+
+\f5\fs36 \cf7 code\cb1 \
+
+\f0\fs28 \cf8 \cb3 JSON\cb1 \
+\
+
+\f4\fs26 \cf9 \cb3 [\
+  \{\
+    \cf15 "timestamp_ms"\cf9 : \cf13 12512\cf9 ,\
+    \cf15 "timestamp_str"\cf9 : \cf15 "00:12.512"\cf9 ,\
+    \cf15 "event_type"\cf9 : \cf15 "pose_detected"\cf9 ,\
+    \cf15 "data"\cf9 : \{\
+      \cf15 "pose"\cf9 : \cf15 "right_arm_raised"\cf9 \
+    \},\
+    \cf15 "confidence"\cf9 : \cf13 0.98\cf9 \
+  \},\
+  \{\
+    \cf15 "timestamp_ms"\cf9 : \cf13 15345\cf9 ,\
+    \cf15 "timestamp_str"\cf9 : \cf15 "00:15.345"\cf9 ,\
+    \cf15 "event_type"\cf9 : \cf15 "gesture_recognized"\cf9 ,\
+    \cf15 "data"\cf9 : \{\
+      \cf15 "hand"\cf9 : \cf15 "Right"\cf9 ,\
+      \cf15 "gesture"\cf9 : \cf15 "Pointing_Up"\cf9 \
+    \},\
+    \cf15 "confidence"\cf9 : \cf13 0.92\cf9 \
+  \},\
+  \{\
+    \cf15 "timestamp_ms"\cf9 : \cf13 28128\cf9 ,\
+    \cf15 "timestamp_str"\cf9 : \cf15 "00:28.128"\cf9 ,\
+    \cf15 "event_type"\cf9 : \cf15 "gesture_recognized"\cf9 ,\
+    \cf15 "data"\cf9 : \{\
+      \cf15 "hand"\cf9 : \cf15 "Left"\cf9 ,\
+      \cf15 "gesture"\cf9 : \cf15 "Thumb_Up"\cf9 \
+    \},\
+    \cf15 "confidence"\cf9 : \cf13 0.95\cf9 \
+  \}\
+]\cb1 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 \
+\
+\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f5 \cf0 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec6 The system takes video inputs\'97specifically YouTube videos or direct video files (like .mp4 or .mov)\'97and uses Artificial Intelligence to analyze them. Its goal is to convert the video content into:\
+\pard\pardeftab720\partightenfactor0
+\cf0 \
+\pard\pardeftab720\sa240\partightenfactor0
+\cf0 \
+\pard\tx220\tx720\pardeftab720\li720\fi-720\sa240\partightenfactor0
+\ls4\ilvl0
+\f7\b \cf0 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec6 Executable Code:
+\f5\b0  Actual code snippets derived from the video's tutorials or demonstrations.\
+\ls4\ilvl0
+\f7\b \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec6 Structured Workflows:
+\f5\b0  Step-by-step processes extracted from the visual or audio content.\
+\ls4\ilvl0
+\f7\b \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec6 Deployment Instructions:
+\f5\b0  Guides on how to implement the code or systems shown.\
+\pard\pardeftab720\sa280\partightenfactor0
+
+\f7\b\fs28 \cf0 How It Works\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\sa240\partightenfactor0
+\ls5\ilvl0
+\fs24 \cf0 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	1	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec6 Input:
+\f5\b0  You provide a video URL (currently processing a YouTube video with ID 
+\f4\fs26 5uCDHmr0xdE
+\f5\fs24 ).\
+\ls5\ilvl0
+\f7\b \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	2	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec6 Analysis:
+\f5\b0  The system, powered by 
+\f7\b GenAIScript
+\f5\b0  and 
+\f7\b Gemini
+\f5\b0 , analyzes the video content.\
+\ls5\ilvl0
+\f7\b \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	3	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec6 Output:
+\f5\b0  It returns the structured code and workflows asynchronously.\
+\pard\pardeftab720\sa280\partightenfactor0
+
+\f7\b\fs28 \cf0 Current Status\
+\pard\pardeftab720\sa240\partightenfactor0
+
+\f5\b0\fs24 \cf0 The screen shows that an analysis is currently 
+\f7\b pending
+\f5\b0  in "dev mode." It is processing the video you submitted, with an estimated completion time of 
+\f7\b 30-60 seconds
+\f5\b0 .\
+Would you like me to look up the video currently being analyzed to see what kind of code it might generate?\
+\pard\pardeftab720\partightenfactor0
+\cf0 VIEW AND DETERMINE STATE OF REPO USING A QUESTION, ANSWER, VERIFY LOOP. \
+\
+YOU PREVIOUSLY STATED WE WERE FINISHED, BUT THESE DOCKS SAY OTHERWISE. \
+\
+THE INTENT OF THIS REPO IS TO RUN  Synthesize a PRD for an Angular-based dashboard featuring VideoProcessingCards and interactive ActionItems.Tab \
+Orchestrate a 'Digital Refinery' using ADK patterns: Ingest, Segment, Enhance, and Action.Tab\
+Create a multi-agent workflow for Supabase-integrated user management and video metadata storage.Tab\
+Map out an A2A task exchange for Gemini-powered video enhancement services.Tab\
+Orchestrate a 'Digital Refinery' using ADK patterns: Ingest, Segment, Enhance, and Action.Tab A brutalist, high-fidelity engine that distills video/URL content into production-ready multi-agent workflows and FastAPI scaffolds using ADK and MCP protocols.
+\f0 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+}
