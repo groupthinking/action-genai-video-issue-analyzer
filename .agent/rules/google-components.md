@@ -4,17 +4,16 @@
 
 ```bash
 # YouTube Data API
-YOUTUBE_API_KEY=AIzaSyDnzvT2S3Y27ypu-e2LIMQxWtMYhCHwpsQ
+YOUTUBE_API_KEY=API    
 
 # Gemini API (for direct Gemini calls)
-GEMINI_API_KEY=AIzaSyDYRg84U8byqgw9Y2wGlbWvZzY0rrAMG9w
+GEMINI_API_KEY=API
 
 # Firebase API
-FIREBASE_API_KEY=AIzaSyBN1-LReFiX1a3xuPI-uCrM7cy4dgmFlSc
+FIREBASE_API_KEY=API
 
 # Unrestricted Master (use when other keys have permission issues)
-GOOGLE_API_KEY=AIzaSyDYRg84U8byqgw9Y2wGlbWvZzY0rrAMG9w
-```
+GOOGLE_API_KEY=API
 
 ---
 
