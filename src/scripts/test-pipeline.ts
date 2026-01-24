@@ -16,6 +16,28 @@ dotenv.config();
 import { streamToGCS, fetchYouTubeMetadata, validateVideoForProcessing } from "../lib/ingest-worker";
 import { analyzeVideoFromGCS, checkGeminiHealth, type VideoAnalysisResult } from "../services/gemini";
 
+// Firebase Data Connect SDK for persistence
+import { initializeApp, getApps } from "firebase/app";
+import { getDataConnect } from "firebase/data-connect";
+import {
+  connectorConfig,
+  createVideoJob,
+  updateJobStatus,
+  completeJob,
+  recordJobEvent,
+  listJobs
+} from "../dataconnect-generated";
+
+// Initialize Firebase if not already done
+function initFirebase() {
+  if (getApps().length === 0) {
+    initializeApp({
+      projectId: "uvai-730bb",
+      apiKey: process.env.FIREBASE_API_KEY || "demo-key",
+    });
+  }
+}
+
 // =============================================================================
 // Test Configuration
 // =============================================================================
@@ -163,6 +185,61 @@ async function runPipelineTest() {
     }
 
     // =========================================================================
+    // Phase 4: Persist to Firebase Data Connect
+    // =========================================================================
+    console.log("");
+    console.log("─".repeat(40));
+    console.log("[4/4] 💾 Saving to Firebase Data Connect...");
+
+    try {
+      initFirebase();
+
+      // Create the job record
+      const videoUrl = `https://www.youtube.com/watch?v=${TEST_VIDEO_ID}`;
+      const createResult = await createVideoJob({
+        videoUrl: videoUrl,
+        source: "youtube",
+        taskType: "full_analysis",
+      });
+
+      const jobId = createResult.data.videoJob_insert.id;
+      console.log(`   Created job: ${jobId}`);
+
+      // Update status to ANALYZING
+      await updateJobStatus({
+        id: jobId,
+        status: "ANALYZING",
+        executedAgents: ["INGEST", "ENHANCE"],
+      });
+
+      // Record the event
+      await recordJobEvent({
+        jobId: jobId,
+        eventType: "ANALYSIS_COMPLETE",
+        agent: "ENHANCE",
+        details: `Analyzed video with Gemini 2.0 Flash. Found ${analysis.techStack.length} technologies, ${analysis.implementationSteps.length} steps.`,
+      });
+
+      // Complete the job with results
+      await completeJob({
+        id: jobId,
+        resultJson: JSON.stringify(analysis),
+        title: metadata.title,
+      });
+
+      console.log(`   ✅ Job completed and persisted!`);
+      console.log(`   Job ID: ${jobId}`);
+
+      // Verify by listing jobs
+      const jobs = await listJobs({ limit: 5 });
+      console.log(`   Total jobs in DB: ${jobs.data.videoJobs.length}`);
+
+    } catch (dbError) {
+      console.warn(`   ⚠️ DB persistence failed: ${dbError instanceof Error ? dbError.message : dbError}`);
+      console.warn(`   (Pipeline still succeeded - results shown above)`);
+    }
+
+    // =========================================================================
     // Final Summary
     // =========================================================================
     console.log("");
@@ -173,6 +250,7 @@ async function runPipelineTest() {
     console.log(`   INGEST: ${ingestDuration}s`);
     console.log(`   ENHANCE: ${enhanceDuration}s`);
     console.log("");
+
 
   } catch (error) {
     console.error("");

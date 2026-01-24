@@ -30,6 +30,14 @@ export interface CreateVideoJobVariables {
   taskType: string;
 }
 
+export interface DeleteJobEmbeddingsData {
+  videoEmbedding_deleteMany: number;
+}
+
+export interface DeleteJobEmbeddingsVariables {
+  jobId: UUIDString;
+}
+
 export interface FailJobData {
   videoJob_update?: VideoJob_Key | null;
 }
@@ -55,6 +63,20 @@ export interface GetJobData {
   } & VideoJob_Key;
 }
 
+export interface GetJobEmbeddingsData {
+  videoEmbeddings: ({
+    id: UUIDString;
+    segmentType: string;
+    segmentIndex: number;
+    content: string;
+    createdAt: TimestampString;
+  } & VideoEmbedding_Key)[];
+}
+
+export interface GetJobEmbeddingsVariables {
+  jobId: UUIDString;
+}
+
 export interface GetJobEventsData {
   jobEvents: ({
     id: UUIDString;
@@ -76,6 +98,24 @@ export interface GetJobVariables {
 export interface JobEvent_Key {
   id: UUIDString;
   __typename?: 'JobEvent_Key';
+}
+
+export interface ListEmbeddingsData {
+  videoEmbeddings: ({
+    id: UUIDString;
+    segmentType: string;
+    segmentIndex: number;
+    content: string;
+    job: {
+      id: UUIDString;
+      title?: string | null;
+      videoUrl: string;
+    } & VideoJob_Key;
+  } & VideoEmbedding_Key)[];
+}
+
+export interface ListEmbeddingsVariables {
+  limit?: number | null;
 }
 
 export interface ListJobsData {
@@ -114,6 +154,11 @@ export interface UpdateJobStatusVariables {
   id: UUIDString;
   status: string;
   executedAgents?: string[] | null;
+}
+
+export interface VideoEmbedding_Key {
+  id: UUIDString;
+  __typename?: 'VideoEmbedding_Key';
 }
 
 export interface VideoJob_Key {
@@ -216,4 +261,40 @@ export const getJobEventsRef: GetJobEventsRef;
 
 export function getJobEvents(vars: GetJobEventsVariables): QueryPromise<GetJobEventsData, GetJobEventsVariables>;
 export function getJobEvents(dc: DataConnect, vars: GetJobEventsVariables): QueryPromise<GetJobEventsData, GetJobEventsVariables>;
+
+interface ListEmbeddingsRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars?: ListEmbeddingsVariables): QueryRef<ListEmbeddingsData, ListEmbeddingsVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars?: ListEmbeddingsVariables): QueryRef<ListEmbeddingsData, ListEmbeddingsVariables>;
+  operationName: string;
+}
+export const listEmbeddingsRef: ListEmbeddingsRef;
+
+export function listEmbeddings(vars?: ListEmbeddingsVariables): QueryPromise<ListEmbeddingsData, ListEmbeddingsVariables>;
+export function listEmbeddings(dc: DataConnect, vars?: ListEmbeddingsVariables): QueryPromise<ListEmbeddingsData, ListEmbeddingsVariables>;
+
+interface GetJobEmbeddingsRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: GetJobEmbeddingsVariables): QueryRef<GetJobEmbeddingsData, GetJobEmbeddingsVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: GetJobEmbeddingsVariables): QueryRef<GetJobEmbeddingsData, GetJobEmbeddingsVariables>;
+  operationName: string;
+}
+export const getJobEmbeddingsRef: GetJobEmbeddingsRef;
+
+export function getJobEmbeddings(vars: GetJobEmbeddingsVariables): QueryPromise<GetJobEmbeddingsData, GetJobEmbeddingsVariables>;
+export function getJobEmbeddings(dc: DataConnect, vars: GetJobEmbeddingsVariables): QueryPromise<GetJobEmbeddingsData, GetJobEmbeddingsVariables>;
+
+interface DeleteJobEmbeddingsRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: DeleteJobEmbeddingsVariables): MutationRef<DeleteJobEmbeddingsData, DeleteJobEmbeddingsVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: DeleteJobEmbeddingsVariables): MutationRef<DeleteJobEmbeddingsData, DeleteJobEmbeddingsVariables>;
+  operationName: string;
+}
+export const deleteJobEmbeddingsRef: DeleteJobEmbeddingsRef;
+
+export function deleteJobEmbeddings(vars: DeleteJobEmbeddingsVariables): MutationPromise<DeleteJobEmbeddingsData, DeleteJobEmbeddingsVariables>;
+export function deleteJobEmbeddings(dc: DataConnect, vars: DeleteJobEmbeddingsVariables): MutationPromise<DeleteJobEmbeddingsData, DeleteJobEmbeddingsVariables>;
 

@@ -102,3 +102,39 @@ exports.getJobEventsRef = getJobEventsRef;
 exports.getJobEvents = function getJobEvents(dcOrVars, vars) {
   return executeQuery(getJobEventsRef(dcOrVars, vars));
 };
+
+const listEmbeddingsRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars);
+  dcInstance._useGeneratedSdk();
+  return queryRef(dcInstance, 'listEmbeddings', inputVars);
+}
+listEmbeddingsRef.operationName = 'listEmbeddings';
+exports.listEmbeddingsRef = listEmbeddingsRef;
+
+exports.listEmbeddings = function listEmbeddings(dcOrVars, vars) {
+  return executeQuery(listEmbeddingsRef(dcOrVars, vars));
+};
+
+const getJobEmbeddingsRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return queryRef(dcInstance, 'getJobEmbeddings', inputVars);
+}
+getJobEmbeddingsRef.operationName = 'getJobEmbeddings';
+exports.getJobEmbeddingsRef = getJobEmbeddingsRef;
+
+exports.getJobEmbeddings = function getJobEmbeddings(dcOrVars, vars) {
+  return executeQuery(getJobEmbeddingsRef(dcOrVars, vars));
+};
+
+const deleteJobEmbeddingsRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'deleteJobEmbeddings', inputVars);
+}
+deleteJobEmbeddingsRef.operationName = 'deleteJobEmbeddings';
+exports.deleteJobEmbeddingsRef = deleteJobEmbeddingsRef;
+
+exports.deleteJobEmbeddings = function deleteJobEmbeddings(dcOrVars, vars) {
+  return executeMutation(deleteJobEmbeddingsRef(dcOrVars, vars));
+};

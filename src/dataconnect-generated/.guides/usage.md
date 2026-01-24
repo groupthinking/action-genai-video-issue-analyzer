@@ -14,7 +14,7 @@ If a user is not using a supported framework, they can use the generated SDK dir
 Here's an example of how to use it with the first 5 operations:
 
 ```js
-import { createVideoJob, updateJobStatus, completeJob, failJob, recordJobEvent, getJob, listJobs, getJobEvents } from '@video-analyzer/dataconnect';
+import { createVideoJob, updateJobStatus, completeJob, failJob, recordJobEvent, getJob, listJobs, getJobEvents, listEmbeddings, getJobEmbeddings } from '@video-analyzer/dataconnect';
 
 
 // Operation createVideoJob:  For variables, look at type CreateVideoJobVars in ../index.d.ts
@@ -40,6 +40,12 @@ const { data } = await ListJobs(dataConnect, listJobsVars);
 
 // Operation getJobEvents:  For variables, look at type GetJobEventsVars in ../index.d.ts
 const { data } = await GetJobEvents(dataConnect, getJobEventsVars);
+
+// Operation listEmbeddings:  For variables, look at type ListEmbeddingsVars in ../index.d.ts
+const { data } = await ListEmbeddings(dataConnect, listEmbeddingsVars);
+
+// Operation getJobEmbeddings:  For variables, look at type GetJobEmbeddingsVars in ../index.d.ts
+const { data } = await GetJobEmbeddings(dataConnect, getJobEmbeddingsVars);
 
 
 ```

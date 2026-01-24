@@ -51,6 +51,11 @@ import {
   listJobs as dbListJobs,
   type UUIDString,
 } from "../dataconnect-generated";
+import {
+  executeAction,
+  type AnalysisForAction,
+  type ActionOutput,
+} from "../services/action";
 
 // =============================================================================
 // DIGITAL REFINERY PIPELINE STAGES
@@ -708,20 +713,51 @@ export async function processVideoJob(jobId: string): Promise<VideoJob> {
     await updateJobStatus(jobId, "ACTION", { executedAgents });
     console.log(`[${jobId}] ACTION: Generating vectors and triggering integrations`);
 
-    // In production:
-    // 1. Generate text-embedding-004 vectors for each segment
-    // 2. Store in pgvector (Cloud SQL with pgvector extension)
-    // 3. Trigger MCP webhooks for downstream automation
+    // Convert result to ActionableAnalysis format
+    // Map from AgenticOutput to AnalysisForAction
+    const analysisForAction: AnalysisForAction = {
+      title: metadata?.title || result.summary.title,
+      summary: result.summary.description || "",
+      // Extract tech from capabilities and insights
+      techStack: result.extractedCapabilities?.map((c) => c.capability) || [],
+      implementationSteps: result.generatedWorkflow?.steps.map((s) => s.action) || [],
+      // Extract code from artifacts
+      codeBlocks: result.codeArtifacts?.map((a) => ({
+        language: a.language,
+        code: a.code,
+        description: a.purpose,
+      })) || [],
+      // No version info in AgenticOutput, leave empty
+      dependencies: {},
+      // Extract key insights as "moments"
+      keyMoments: result.actionableInsights?.map((insight, i) => ({
+        timestamp: `Insight ${i + 1}`,
+        description: insight.insight,
+      })) || [],
+    };
 
-    const vectorIds: string[] = [
-      // Placeholder - in production, these are actual embedding IDs
-      `${jobId}-vec-1`,
-    ];
+    // Execute ACTION stage
+    const actionOutput = await executeAction(jobId, analysisForAction, {
+      generateVectors: true,
+      // GitHub issue creation is optional - enable via env var
+      createGitHubIssue: process.env.ACTION_CREATE_GITHUB_ISSUE === "true"
+        ? {
+            owner: process.env.ACTION_GITHUB_OWNER || "groupthinking",
+            repo: process.env.ACTION_GITHUB_REPO || "action-genai-video-issue-analyzer",
+            labels: ["video-tutorial", "auto-generated"],
+          }
+        : undefined,
+    });
+
+    console.log(`[${jobId}] ACTION: Generated ${actionOutput.embeddings?.vectorCount || 0} embeddings`);
+    if (actionOutput.githubIssue?.created) {
+      console.log(`[${jobId}] ACTION: Created GitHub issue: ${actionOutput.githubIssue.issueUrl}`);
+    }
 
     await recordJobEvent({
       jobId: jobId as UUIDString,
-      eventType: "ACTION_VECTORS",
-      details: `Generated ${vectorIds.length} vector embeddings`,
+      eventType: "ACTION_COMPLETE",
+      details: `Vectors: ${actionOutput.embeddings?.vectorCount || 0}, GitHub: ${actionOutput.githubIssue?.created ? actionOutput.githubIssue.issueUrl : "skipped"}`,
     });
 
     // =========================================================================

@@ -116,3 +116,43 @@ query getJobEvents($jobId: UUID!) @auth(level: PUBLIC) {
     timestamp
   }
 }
+
+# =============================================================================
+# EMBEDDING OPERATIONS (pgvector)
+# Note: Storing embeddings (INSERT with Vector) is done via raw SQL in the
+# embedding service because the SDK generator doesn't support Vector arguments.
+# =============================================================================
+
+# List recent embeddings (similarity search done in application layer)
+query listEmbeddings($limit: Int = 100) @auth(level: PUBLIC) {
+  videoEmbeddings(orderBy: [{ createdAt: DESC }], limit: $limit) {
+    id
+    segmentType
+    segmentIndex
+    content
+    job {
+      id
+      title
+      videoUrl
+    }
+  }
+}
+
+# Get all embeddings for a specific job
+query getJobEmbeddings($jobId: UUID!) @auth(level: PUBLIC) {
+  videoEmbeddings(
+    where: { job: { id: { eq: $jobId } } }
+    orderBy: [{ segmentType: ASC }, { segmentIndex: ASC }]
+  ) {
+    id
+    segmentType
+    segmentIndex
+    content
+    createdAt
+  }
+}
+
+# Delete embeddings for a job (for re-processing)
+mutation deleteJobEmbeddings($jobId: UUID!) @auth(level: PUBLIC) {
+  videoEmbedding_deleteMany(where: { job: { id: { eq: $jobId } } })
+}

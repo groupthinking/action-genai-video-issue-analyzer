@@ -23,3 +23,14 @@ type JobEvent @table {
   details: String # Additional context
   timestamp: Timestamp! @default(expr: "request.time")
 }
+
+# Vector embeddings for semantic search (RAG)
+# Uses pgvector extension for similarity search
+type VideoEmbedding @table {
+  job: VideoJob!
+  segmentType: String! # summary, step, insight, code
+  segmentIndex: Int! # Position within type (e.g., step 3 of 12)
+  content: String! # Original text content that was embedded
+  embedding: Vector! @col(size: 768) # text-embedding-004 produces 768-dim vectors
+  createdAt: Timestamp! @default(expr: "request.time")
+}
