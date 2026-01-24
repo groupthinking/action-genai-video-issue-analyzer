@@ -84,6 +84,41 @@ The action outputs the analysis results to the GitHub Step Summary for easy view
 
 ---
 
+## 🔥 NEW: Digital Refinery Pipeline
+
+The core video analysis has been refactored into a **zero-disk, API-first architecture**:
+
+```text
+YouTube URL → INGEST → ENHANCE → Structured Output
+                ↓          ↓
+        (GCS Storage)  (Vertex AI Gemini)
+```
+
+### Pipeline Stages
+
+| Stage       | Description                                            | Duration |
+| ----------- | ------------------------------------------------------ | -------- |
+| **INGEST**  | Zero-disk stream from YouTube to GCS via yt-dlp        | ~2-5s    |
+| **ENHANCE** | Multimodal video analysis via Vertex AI Gemini 2.0     | ~10-15s  |
+| **SEGMENT** | _(Optional)_ Key moments are extracted in ENHANCE pass | -        |
+| **ACTION**  | _(Planned)_ pgvector storage for RAG queries           | -        |
+
+### Key Principles
+
+- **🚫 NO DOWNLOADING** — Videos stream directly from YouTube to GCS, then Vertex AI reads from GCS directly
+- **Zero-Disk** — No temporary files, works on memory-constrained Cloud Run
+- **API-First** — Uses official Google APIs (YouTube Data API, Vertex AI) instead of scraping
+- **Single-Pass Analysis** — Mega-prompt extracts summary, tech stack, steps, code, and key moments in one request
+
+### Test the Pipeline
+
+```bash
+# Run the integration test
+GCS_BUCKET_NAME=your-bucket npm run test:pipeline
+```
+
+See [`docs/pipeline-test-results.md`](docs/pipeline-test-results.md) for latest test results.
+
 ## Project Structure
 
 ```text

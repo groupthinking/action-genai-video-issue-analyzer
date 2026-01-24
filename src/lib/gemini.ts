@@ -1,106 +1,118 @@
-import { GoogleGenerativeAI, SchemaType, ResponseSchema } from "@google/generative-ai";
+/**
+ * Legacy Gemini Integration for URL-based Video Analysis
+ *
+ * DEPRECATED: This module provides backward compatibility for URL-based analysis.
+ * New implementations should use src/services/gemini.ts with GCS URIs.
+ *
+ * Migrated to use the unified @google/genai SDK.
+ */
 
-// Agentic Output Schema - matches the GenAIScript schema
-const agenticOutputSchema: ResponseSchema = {
-  type: SchemaType.OBJECT,
+import { GoogleGenAI, Type, type Content, type Schema } from "@google/genai";
+
+// =============================================================================
+// Schema Definition (using new SDK format with Type enum)
+// =============================================================================
+
+const agenticOutputSchema: Schema = {
+  type: Type.OBJECT,
   properties: {
     summary: {
-      type: SchemaType.OBJECT,
+      type: Type.OBJECT,
       properties: {
-        title: { type: SchemaType.STRING, description: "Title derived from video content" },
-        description: { type: SchemaType.STRING, description: "Brief description of what the video demonstrates" },
-        duration: { type: SchemaType.STRING, description: "Estimated duration of key content" },
-        primaryTopic: { type: SchemaType.STRING, description: "Main technical topic covered" },
+        title: { type: Type.STRING, description: "Title derived from video content" },
+        description: { type: Type.STRING, description: "Brief description of what the video demonstrates" },
+        duration: { type: Type.STRING, description: "Estimated duration of key content" },
+        primaryTopic: { type: Type.STRING, description: "Main technical topic covered" },
       },
       required: ["title", "description", "primaryTopic"],
     },
     extractedEndpoints: {
-      type: SchemaType.ARRAY,
+      type: Type.ARRAY,
       items: {
-        type: SchemaType.OBJECT,
+        type: Type.OBJECT,
         properties: {
-          endpoint: { type: SchemaType.STRING, description: "API endpoint URL or path" },
-          method: { type: SchemaType.STRING, description: "HTTP method (GET, POST, etc.)" },
-          purpose: { type: SchemaType.STRING, description: "What this endpoint does" },
-          timestamp: { type: SchemaType.STRING, description: "When it appears in video" },
+          endpoint: { type: Type.STRING, description: "API endpoint URL or path" },
+          method: { type: Type.STRING, description: "HTTP method (GET, POST, etc.)" },
+          purpose: { type: Type.STRING, description: "What this endpoint does" },
+          timestamp: { type: Type.STRING, description: "When it appears in video" },
         },
         required: ["endpoint", "purpose"],
       },
     },
     extractedCapabilities: {
-      type: SchemaType.ARRAY,
+      type: Type.ARRAY,
       items: {
-        type: SchemaType.OBJECT,
+        type: Type.OBJECT,
         properties: {
-          capability: { type: SchemaType.STRING, description: "Name of the capability" },
-          description: { type: SchemaType.STRING, description: "How it works" },
-          useCase: { type: SchemaType.STRING, description: "Practical application" },
-          timestamp: { type: SchemaType.STRING, description: "When demonstrated" },
+          capability: { type: Type.STRING, description: "Name of the capability" },
+          description: { type: Type.STRING, description: "How it works" },
+          useCase: { type: Type.STRING, description: "Practical application" },
+          timestamp: { type: Type.STRING, description: "When demonstrated" },
         },
         required: ["capability", "description"],
       },
     },
     actionableInsights: {
-      type: SchemaType.ARRAY,
+      type: Type.ARRAY,
       items: {
-        type: SchemaType.OBJECT,
+        type: Type.OBJECT,
         properties: {
-          insight: { type: SchemaType.STRING, description: "The actionable insight" },
-          priority: { type: SchemaType.STRING, description: "high, medium, or low" },
-          implementation: { type: SchemaType.STRING, description: "How to implement this" },
+          insight: { type: Type.STRING, description: "The actionable insight" },
+          priority: { type: Type.STRING, description: "high, medium, or low" },
+          implementation: { type: Type.STRING, description: "How to implement this" },
         },
         required: ["insight", "priority"],
       },
     },
     generatedWorkflow: {
-      type: SchemaType.OBJECT,
+      type: Type.OBJECT,
       properties: {
-        name: { type: SchemaType.STRING, description: "Workflow name" },
-        description: { type: SchemaType.STRING, description: "What this workflow accomplishes" },
+        name: { type: Type.STRING, description: "Workflow name" },
+        description: { type: Type.STRING, description: "What this workflow accomplishes" },
         steps: {
-          type: SchemaType.ARRAY,
+          type: Type.ARRAY,
           items: {
-            type: SchemaType.OBJECT,
+            type: Type.OBJECT,
             properties: {
-              stepNumber: { type: SchemaType.NUMBER },
-              action: { type: SchemaType.STRING, description: "Action to take" },
-              command: { type: SchemaType.STRING, description: "CLI command if applicable" },
-              code: { type: SchemaType.STRING, description: "Code snippet if applicable" },
-              expectedOutput: { type: SchemaType.STRING, description: "What should happen" },
+              stepNumber: { type: Type.NUMBER },
+              action: { type: Type.STRING, description: "Action to take" },
+              command: { type: Type.STRING, description: "CLI command if applicable" },
+              code: { type: Type.STRING, description: "Code snippet if applicable" },
+              expectedOutput: { type: Type.STRING, description: "What should happen" },
             },
             required: ["stepNumber", "action"],
           },
         },
         prerequisites: {
-          type: SchemaType.ARRAY,
-          items: { type: SchemaType.STRING },
+          type: Type.ARRAY,
+          items: { type: Type.STRING },
         },
-        estimatedTime: { type: SchemaType.STRING, description: "Time to complete" },
+        estimatedTime: { type: Type.STRING, description: "Time to complete" },
       },
       required: ["name", "steps"],
     },
     codeArtifacts: {
-      type: SchemaType.ARRAY,
+      type: Type.ARRAY,
       items: {
-        type: SchemaType.OBJECT,
+        type: Type.OBJECT,
         properties: {
-          filename: { type: SchemaType.STRING, description: "Suggested filename" },
-          language: { type: SchemaType.STRING, description: "Programming language" },
-          code: { type: SchemaType.STRING, description: "The actual code" },
-          purpose: { type: SchemaType.STRING, description: "What this code does" },
+          filename: { type: Type.STRING, description: "Suggested filename" },
+          language: { type: Type.STRING, description: "Programming language" },
+          code: { type: Type.STRING, description: "The actual code" },
+          purpose: { type: Type.STRING, description: "What this code does" },
         },
         required: ["filename", "language", "code", "purpose"],
       },
     },
     perceivedLearnings: {
-      type: SchemaType.ARRAY,
+      type: Type.ARRAY,
       description: "Key learnings that could be applied to modify an existing project",
       items: {
-        type: SchemaType.OBJECT,
+        type: Type.OBJECT,
         properties: {
-          learning: { type: SchemaType.STRING, description: "The specific learning or pattern" },
-          applicability: { type: SchemaType.STRING, description: "How this applies to existing projects" },
-          suggestedChange: { type: SchemaType.STRING, description: "Specific modification to make" },
+          learning: { type: Type.STRING, description: "The specific learning or pattern" },
+          applicability: { type: Type.STRING, description: "How this applies to existing projects" },
+          suggestedChange: { type: Type.STRING, description: "Specific modification to make" },
         },
         required: ["learning", "applicability"],
       },
@@ -108,6 +120,10 @@ const agenticOutputSchema: ResponseSchema = {
   },
   required: ["summary", "actionableInsights", "generatedWorkflow"],
 };
+
+// =============================================================================
+// Prompt Template
+// =============================================================================
 
 const AGENTIC_PROMPT = `You are a Video-to-Agentic Action Agent. Your goal is to transform video content into executable, deployable business systems.
 
@@ -128,6 +144,10 @@ Analyze this video through the lens of "Functional Workflow Mirroring" - extract
 - Identify reusable patterns and architectures
 - Generate working code that mirrors demonstrated functionality
 - Provide clear deployment instructions where applicable`;
+
+// =============================================================================
+// Type Definitions
+// =============================================================================
 
 export interface AgenticOutput {
   summary: {
@@ -179,31 +199,41 @@ export interface AgenticOutput {
   }>;
 }
 
+// =============================================================================
+// Client Initialization
+// =============================================================================
+
+let genAIClient: GoogleGenAI | null = null;
+
+function getClient(): GoogleGenAI {
+  const apiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error("GOOGLE_API_KEY or GEMINI_API_KEY environment variable is required");
+  }
+
+  if (!genAIClient) {
+    genAIClient = new GoogleGenAI({ apiKey });
+  }
+  return genAIClient;
+}
+
+// =============================================================================
+// Video Analysis Functions
+// =============================================================================
+
+/**
+ * Analyze a video URL using Gemini
+ *
+ * DEPRECATED: This function uses text-based URL analysis.
+ * For production, use analyzeVideoFromGCS from src/services/gemini.ts
+ */
 export async function analyzeVideoUrl(
   videoUrl: string,
   items?: string
 ): Promise<AgenticOutput> {
-  const apiKey = process.env.GOOGLE_API_KEY;
-  if (!apiKey) {
-    throw new Error("GOOGLE_API_KEY environment variable is required");
-  }
-
-  const genAI = new GoogleGenerativeAI(apiKey);
-
-  // Use Gemini 2.0 Flash for video understanding
-  const model = genAI.getGenerativeModel({
-    model: "gemini-2.0-flash-thinking-exp",
-    generationConfig: {
-      responseMimeType: "application/json",
-      responseSchema: agenticOutputSchema,
-    },
-  });
-
+  const client = getClient();
   const contextItems = items || "API endpoints, model capabilities, technical implementations";
 
-  // For web-based analysis, we use text-based URL analysis
-  // Note: Direct video file access requires the File API upload flow
-  // which is handled by GenAIScript for GitHub Actions
   const prompt = `${AGENTIC_PROMPT}
 
 ## Context Items to Extract
@@ -231,9 +261,18 @@ Provide comprehensive analysis with:
 - Key learnings for project integration`;
 
   try {
-    const result = await model.generateContent([{ text: prompt }]);
-    const response = result.response;
-    const text = response.text();
+    const response = await client.models.generateContent({
+      model: "gemini-2.0-flash",
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: agenticOutputSchema,
+        temperature: 0.3,
+        maxOutputTokens: 8192,
+      },
+    });
+
+    const text = response.text || "";
 
     // Parse JSON response
     const analysis = JSON.parse(text) as AgenticOutput;
@@ -267,62 +306,113 @@ Provide comprehensive analysis with:
   }
 }
 
+// =============================================================================
+// Output Formatting
+// =============================================================================
+
 export function formatAgenticOutput(analysis: AgenticOutput): string {
   const sections: string[] = [];
 
   // Summary
-  sections.push(`## 🎯 ${analysis.summary.title}`);
-  sections.push(analysis.summary.description);
+  sections.push(`# ${analysis.summary.title}\n`);
+  sections.push(`${analysis.summary.description}\n`);
   sections.push(`**Primary Topic:** ${analysis.summary.primaryTopic}`);
   if (analysis.summary.duration) {
     sections.push(`**Duration:** ${analysis.summary.duration}`);
   }
-
-  // Actionable Insights
-  if (analysis.actionableInsights?.length) {
-    sections.push("\n## ⚡ Actionable Insights");
-    for (const insight of analysis.actionableInsights) {
-      sections.push(`- **[${insight.priority.toUpperCase()}]** ${insight.insight}`);
-      if (insight.implementation) {
-        sections.push(`  → *Implementation:* ${insight.implementation}`);
-      }
-    }
-  }
+  sections.push("");
 
   // Extracted Endpoints
   if (analysis.extractedEndpoints?.length) {
-    sections.push("\n## 🔗 Extracted Endpoints");
-    for (const ep of analysis.extractedEndpoints) {
-      sections.push(`- \`${ep.method || "GET"} ${ep.endpoint}\` - ${ep.purpose}`);
+    sections.push("## Extracted Endpoints\n");
+    for (const endpoint of analysis.extractedEndpoints) {
+      sections.push(`- **${endpoint.method || "GET"} ${endpoint.endpoint}**: ${endpoint.purpose}`);
+    }
+    sections.push("");
+  }
+
+  // Extracted Capabilities
+  if (analysis.extractedCapabilities?.length) {
+    sections.push("## Extracted Capabilities\n");
+    for (const cap of analysis.extractedCapabilities) {
+      sections.push(`### ${cap.capability}`);
+      sections.push(cap.description);
+      if (cap.useCase) {
+        sections.push(`*Use Case: ${cap.useCase}*`);
+      }
+      sections.push("");
     }
   }
 
+  // Actionable Insights
+  if (analysis.actionableInsights?.length) {
+    sections.push("## Actionable Insights\n");
+    for (const insight of analysis.actionableInsights) {
+      const priorityEmoji = insight.priority === "high" ? "🔴" : insight.priority === "medium" ? "🟡" : "🟢";
+      sections.push(`${priorityEmoji} **${insight.insight}**`);
+      if (insight.implementation) {
+        sections.push(`   *Implementation: ${insight.implementation}*`);
+      }
+    }
+    sections.push("");
+  }
+
   // Generated Workflow
-  if (analysis.generatedWorkflow?.steps?.length) {
-    sections.push("\n## 🔧 Generated Workflow");
-    sections.push(`**${analysis.generatedWorkflow.name}**`);
+  if (analysis.generatedWorkflow) {
+    sections.push(`## Workflow: ${analysis.generatedWorkflow.name}\n`);
     if (analysis.generatedWorkflow.description) {
       sections.push(analysis.generatedWorkflow.description);
+      sections.push("");
     }
+    if (analysis.generatedWorkflow.prerequisites?.length) {
+      sections.push("**Prerequisites:**");
+      for (const prereq of analysis.generatedWorkflow.prerequisites) {
+        sections.push(`- ${prereq}`);
+      }
+      sections.push("");
+    }
+    sections.push("**Steps:**\n");
     for (const step of analysis.generatedWorkflow.steps) {
       sections.push(`${step.stepNumber}. ${step.action}`);
       if (step.command) {
-        sections.push(`   \`${step.command}\``);
+        sections.push(`   \`\`\`bash\n   ${step.command}\n   \`\`\``);
       }
+      if (step.code) {
+        sections.push(`   \`\`\`\n   ${step.code}\n   \`\`\``);
+      }
+    }
+    sections.push("");
+  }
+
+  // Code Artifacts
+  if (analysis.codeArtifacts?.length) {
+    sections.push("## Code Artifacts\n");
+    for (const artifact of analysis.codeArtifacts) {
+      sections.push(`### ${artifact.filename}`);
+      sections.push(`*${artifact.purpose}*\n`);
+      sections.push(`\`\`\`${artifact.language}`);
+      sections.push(artifact.code);
+      sections.push("```\n");
     }
   }
 
   // Perceived Learnings
   if (analysis.perceivedLearnings?.length) {
-    sections.push("\n## 📚 Perceived Learnings");
+    sections.push("## Key Learnings\n");
     for (const learning of analysis.perceivedLearnings) {
-      sections.push(`- **${learning.learning}**`);
-      sections.push(`  Applicability: ${learning.applicability}`);
+      sections.push(`### 💡 ${learning.learning}`);
+      sections.push(`*Applicability: ${learning.applicability}*`);
       if (learning.suggestedChange) {
-        sections.push(`  Suggested Change: ${learning.suggestedChange}`);
+        sections.push(`**Suggested Change:** ${learning.suggestedChange}`);
       }
+      sections.push("");
     }
   }
 
   return sections.join("\n");
 }
+
+export default {
+  analyzeVideoUrl,
+  formatAgenticOutput,
+};

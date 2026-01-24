@@ -1,5 +1,6 @@
 ---
-trigger: video-intent-validation
+trigger: model_decision
+description: Before processing ANY video
 ---
 
 # Intent-Driven Video Action Framework

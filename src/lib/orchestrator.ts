@@ -21,6 +21,19 @@
 import { initializeApp, getApps } from "firebase/app";
 import { analyzeVideoUrl, formatAgenticOutput, type AgenticOutput } from "./gemini";
 import {
+  analyzeVideoFromGCS,
+  type VideoAnalysisResult,
+} from "../services/gemini";
+import {
+  ingestVideo,
+  streamToGCS as workerStreamToGCS,
+  fetchYouTubeMetadata as workerFetchMetadata,
+  validateVideoForProcessing as workerValidateVideo,
+  extractYouTubeId as workerExtractId,
+  type YouTubeMetadata as WorkerYouTubeMetadata,
+  type IngestResult,
+} from "./ingest-worker";
+import {
   type AnalysisTaskType,
   type AgentType,
   getAgentChain,
@@ -292,24 +305,86 @@ const GCS_BUCKET = process.env.GCS_BUCKET_NAME || "uvai-videos";
  *
  * INGEST STAGE - Step 3: Streaming
  *
- * In production, this would:
- * 1. Use yt-dlp in a container to stream video
- * 2. Pipe directly to GCS (no local disk)
- * 3. Return the gs:// URI for Gemini processing
+ * Uses yt-dlp to stream video directly to GCS without local disk storage.
+ * This is a thin wrapper around the ingest-worker implementation.
  */
 export async function streamToGCS(videoId: string): Promise<string> {
-  // TODO: Implement actual GCS streaming via Cloud Run worker
-  // For now, return a placeholder URI that represents the workflow
-  const gcsUri = `gs://${GCS_BUCKET}/raw/${videoId}.mp4`;
+  // Use the real worker implementation that streams via yt-dlp
+  return workerStreamToGCS(videoId);
+}
 
-  console.log(`[INGEST] Streaming ${videoId} to ${gcsUri}`);
+/**
+ * Transform VideoAnalysisResult to AgenticOutput format
+ *
+ * Bridges the new Gemini service output to the existing AgenticOutput
+ * interface used by the rest of the pipeline.
+ */
+function transformToAgenticOutput(
+  gcsResult: VideoAnalysisResult,
+  metadata?: WorkerYouTubeMetadata | null
+): AgenticOutput {
+  return {
+    summary: {
+      title: metadata?.title || gcsResult.summary || "Video Analysis",
+      description: gcsResult.summary || "",
+      duration: metadata?.duration,
+      primaryTopic: gcsResult.techStack[0] || "General",
+    },
+    extractedEndpoints: [], // Will be populated by CSDAA agent
+    extractedCapabilities: gcsResult.techStack.map((tech) => ({
+      capability: tech,
+      description: `Technology identified in video: ${tech}`,
+    })),
+    actionableInsights: gcsResult.implementationSteps
+      .slice(0, 5)
+      .map((step, index) => ({
+        insight: step,
+        priority: index === 0 ? "high" : index < 3 ? "medium" : "low",
+      })),
+    generatedWorkflow: {
+      name: metadata?.title || "Generated Workflow",
+      description: gcsResult.summary,
+      steps: gcsResult.implementationSteps.map((step, index) => ({
+        stepNumber: index + 1,
+        action: step,
+        command: gcsResult.commands[index], // Map commands to steps
+      })),
+      prerequisites: gcsResult.techStack,
+    },
+    codeArtifacts: gcsResult.codeBlocks.map((block, index) => ({
+      filename: `snippet-${index + 1}.${getExtension(block.language)}`,
+      language: block.language,
+      code: block.code,
+      purpose: block.context || "Code extracted from video",
+    })),
+    perceivedLearnings: gcsResult.keyMoments.map((moment) => ({
+      learning: moment.description,
+      applicability: `At ${moment.timestamp}`,
+    })),
+  };
+}
 
-  // In production this would be:
-  // 1. Spawn yt-dlp process with stdout piped to GCS
-  // 2. await upload completion
-  // 3. Verify file exists in GCS
-
-  return gcsUri;
+/**
+ * Get file extension for a programming language
+ */
+function getExtension(language: string): string {
+  const extensions: Record<string, string> = {
+    javascript: "js",
+    typescript: "ts",
+    python: "py",
+    java: "java",
+    go: "go",
+    rust: "rs",
+    ruby: "rb",
+    php: "php",
+    css: "css",
+    html: "html",
+    json: "json",
+    yaml: "yaml",
+    bash: "sh",
+    shell: "sh",
+  };
+  return extensions[language.toLowerCase()] || "txt";
 }
 
 // =============================================================================
@@ -589,15 +664,30 @@ export async function processVideoJob(jobId: string): Promise<VideoJob> {
       await updateJobStatus(jobId, "ENHANCE", { executedAgents });
     }
 
-    // Run the actual Gemini analysis
-    // In production: This would use the GCS URI and segment timestamps
-    const result = await analyzeVideoUrl(job.videoUrl);
+    // Run Gemini 2.0 Flash analysis using the GCS URI
+    // This is the core ENHANCE stage - multimodal video understanding
+    let result: AgenticOutput;
+
+    if (gcsUri) {
+      // Use the new GCS-based analysis (production path)
+      console.log(`[${jobId}] ENHANCE: Analyzing video from GCS: ${gcsUri}`);
+      const gcsResult = await analyzeVideoFromGCS(gcsUri);
+
+      // Transform VideoAnalysisResult to AgenticOutput format
+      result = transformToAgenticOutput(gcsResult, metadata);
+    } else {
+      // Fallback to legacy URL-based analysis (deprecated)
+      console.warn(`[${jobId}] ENHANCE: No GCS URI, falling back to URL analysis`);
+      result = await analyzeVideoUrl(job.videoUrl);
+    }
 
     console.log(`[${jobId}] ENHANCE: Analysis complete`);
 
     // Validate output
-    if (!result.summary?.title || !result.generatedWorkflow?.steps) {
-      throw new Error("Invalid analysis output: missing required fields");
+    if (!result.summary?.title) {
+      console.warn(`[${jobId}] ENHANCE: Missing title, using metadata fallback`);
+      result.summary = result.summary || { title: "", description: "" };
+      result.summary.title = metadata?.title || "Untitled Analysis";
     }
 
     // Validate pipeline execution
