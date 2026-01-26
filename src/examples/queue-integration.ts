@@ -55,7 +55,7 @@ export async function startVideoAnalysisWorker() {
         const { analyzeVideoUrl } = await import('../lib/gemini');
 
         const startTime = Date.now();
-        const result = await analyzeVideoUrl(videoUrl);
+        await analyzeVideoUrl(videoUrl);
         const duration = Date.now() - startTime;
 
         logger.info(`Video analysis completed: ${videoUrl}`, {

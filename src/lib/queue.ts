@@ -81,6 +81,7 @@ export async function connect(): Promise<void> {
     });
     connection = null;
     channel = null;
+    isConnecting = false; // Reset flag before throwing to prevent deadlock
     throw error;
   } finally {
     isConnecting = false;
@@ -190,6 +191,9 @@ export async function consumeMessages(
           });
 
           // Reject and requeue the message
+          // TODO: Consider implementing a retry limit mechanism (e.g., using message headers
+          // to track retry count) or moving permanently failing messages to a dead-letter
+          // queue after a certain number of retries to avoid infinite loops.
           channel?.nack(msg, false, true);
         }
       },

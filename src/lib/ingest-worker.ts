@@ -75,7 +75,9 @@ export async function fetchYouTubeMetadata(videoId: string): Promise<YouTubeMeta
     const duration = Date.now() - startTime;
 
     if (!response.ok) {
-      logApiError('YouTube Data API', endpoint, new Error(`${response.status} ${response.statusText}`), duration);
+      // Sanitize endpoint to avoid logging API key
+      const sanitizedEndpoint = endpoint.replace(/([?&]key=)[^&]*/i, '$1***');
+      logApiError('YouTube Data API', sanitizedEndpoint, new Error(`${response.status} ${response.statusText}`), duration);
       throw new Error(`YouTube API error: ${response.status} ${response.statusText}`);
     }
 

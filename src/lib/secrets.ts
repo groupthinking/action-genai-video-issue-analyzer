@@ -77,13 +77,21 @@ export async function getSecret(secretName: string, envFallback?: string): Promi
 
 /**
  * Get Google API Key
+ * 
+ * Returns the GOOGLE_API_KEY secret when available; otherwise explicitly
+ * falls back to GEMINI_API_KEY. An empty string from getSecret indicates
+ * that the secret was not found.
  */
 export async function getGoogleApiKey(): Promise<string> {
   const googleKey = await getSecret('GOOGLE_API_KEY', 'GOOGLE_API_KEY');
-  if (googleKey) {
+
+  // getSecret returns an empty string when the secret is not found.
+  // We explicitly check for that case before falling back.
+  if (googleKey !== '') {
     return googleKey;
   }
-  // Fallback to GEMINI_API_KEY
+
+  // Fallback to GEMINI_API_KEY when GOOGLE_API_KEY is not configured.
   return getSecret('GEMINI_API_KEY', 'GEMINI_API_KEY');
 }
 

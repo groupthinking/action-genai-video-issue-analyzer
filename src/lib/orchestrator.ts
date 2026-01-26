@@ -56,7 +56,7 @@ import {
   type AnalysisForAction,
   type ActionOutput,
 } from "../services/action";
-import logger, { logPipelineStage, logApiCall, logApiError } from './logger';
+import { logApiCall, logApiError } from './logger';
 import { getYouTubeApiKey } from './secrets';
 
 // =============================================================================

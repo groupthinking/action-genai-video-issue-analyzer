@@ -37,7 +37,8 @@ test.describe('Video Analysis Flow', () => {
   });
 
   test('should accept valid YouTube URL', async ({ page }) => {
-    // Enter a valid YouTube URL
+    // Note: This test uses a real YouTube video ID for integration testing.
+    // Consider mocking the API response in CI or using a dedicated test video.
     const youtubeUrl = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
     await page.getByLabel(/video url/i).fill(youtubeUrl);
     
