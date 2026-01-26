@@ -87,36 +87,43 @@ export async function fetchYouTubeMetadata(videoId: string): Promise<YouTubeMeta
       throw new Error(`Video not found: ${videoId}`);
     }
 
-  const item = data.items[0];
-  const snippet = item.snippet;
-  const contentDetails = item.contentDetails;
-  const topicDetails = item.topicDetails || {};
+    const item = data.items[0];
+    const snippet = item.snippet;
+    const contentDetails = item.contentDetails;
+    const topicDetails = item.topicDetails || {};
 
-  // Determine if video is actionable (tutorials, demos, technical content)
-  const actionableKeywords = [
-    'tutorial', 'how to', 'guide', 'demo', 'walkthrough',
-    'coding', 'programming', 'development', 'deploy', 'build',
-    'api', 'sdk', 'framework', 'cloud', 'kubernetes', 'docker'
-  ];
-  const titleLower = snippet.title.toLowerCase();
-  const descLower = snippet.description.toLowerCase();
-  const isActionable = actionableKeywords.some(
-    keyword => titleLower.includes(keyword) || descLower.includes(keyword)
-  );
+    // Determine if video is actionable (tutorials, demos, technical content)
+    const actionableKeywords = [
+      'tutorial', 'how to', 'guide', 'demo', 'walkthrough',
+      'coding', 'programming', 'development', 'deploy', 'build',
+      'api', 'sdk', 'framework', 'cloud', 'kubernetes', 'docker'
+    ];
+    const titleLower = snippet.title.toLowerCase();
+    const descLower = snippet.description.toLowerCase();
+    const isActionable = actionableKeywords.some(
+      keyword => titleLower.includes(keyword) || descLower.includes(keyword)
+    );
 
-  return {
-    videoId,
-    title: snippet.title,
-    description: snippet.description,
-    channelTitle: snippet.channelTitle,
-    duration: contentDetails.duration,
-    durationSeconds: parseDuration(contentDetails.duration),
-    hasCaptions: contentDetails.caption === 'true',
-    publishedAt: snippet.publishedAt,
-    thumbnailUrl: snippet.thumbnails?.high?.url || snippet.thumbnails?.default?.url,
-    topics: topicDetails.topicCategories || [],
-    isActionable,
-  };
+    return {
+      videoId,
+      title: snippet.title,
+      description: snippet.description,
+      channelTitle: snippet.channelTitle,
+      duration: contentDetails.duration,
+      durationSeconds: parseDuration(contentDetails.duration),
+      hasCaptions: contentDetails.caption === 'true',
+      publishedAt: snippet.publishedAt,
+      thumbnailUrl: snippet.thumbnails?.high?.url || snippet.thumbnails?.default?.url,
+      topics: topicDetails.topicCategories || [],
+      isActionable,
+    };
+  } catch (error) {
+    logger.error('Failed to fetch YouTube metadata', {
+      videoId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw error;
+  }
 }
 
 /**
