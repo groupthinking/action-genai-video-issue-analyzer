@@ -33,7 +33,10 @@ The action outputs the analysis results to the GitHub Step Summary for easy view
 | **Version Control**     | Git/GitHub            | GitHub Agentics workflows enabled                  |
 | **Build Tool**          | Turbopack             | Next.js dev mode                                   |
 | **Code Quality**        | Prettier              | Script linting for genaisrc/ and src/              |
-| **Testing Framework**   | None defined          | `npm test` returns echo (gap identified)           |
+| **Testing Framework**   | Vitest + Playwright   | Unit tests (Vitest) + E2E tests (Playwright)       |
+| **Logging**             | Winston               | Structured logging with multiple transports        |
+| **Message Queue**       | RabbitMQ              | Async processing for external API calls            |
+| **Secrets Management**  | AWS Secrets Manager   | Secure credential storage with env fallback        |
 
 ### Intent (Logic & Architecture)
 
@@ -493,10 +496,72 @@ Copy `.env.example` to `.env` and configure:
 | Variable                | Required     | Description                             |
 | ----------------------- | ------------ | --------------------------------------- |
 | `GOOGLE_API_KEY`        | Yes          | Google Gemini API key for analysis      |
-| `OPENAI_API_KEY`        | No           | OpenAI API key (Whisper fallback)       |
+| `YOUTUBE_API_KEY`       | Yes          | YouTube Data API key                    |
 | `GITHUB_TOKEN`          | Yes (Action) | GitHub token for issue asset resolution |
-| `CLOUDFLARE_API_TOKEN`  | No           | For Cloudflare deployment               |
-| `CLOUDFLARE_ACCOUNT_ID` | No           | For Cloudflare deployment               |
+| `CLOUDSQL_PASSWORD`     | No           | PostgreSQL database password            |
+| `RABBITMQ_URL`          | No           | RabbitMQ connection URL                 |
+| `LOG_LEVEL`             | No           | Logging level (default: info)           |
+| `USE_SECRETS_MANAGER`   | No           | Enable AWS Secrets Manager (production) |
+
+---
+
+## 🆕 New Features & Enhancements
+
+This repository now includes several production-ready enhancements for optimization and reliability:
+
+### 1. **Winston Logging** 🪵
+Structured logging system with multiple log levels, file outputs, and detailed error tracking.
+
+```typescript
+import logger from './lib/logger';
+logger.info('Processing video', { videoId, duration });
+```
+
+See [docs/NEW_FEATURES.md](docs/NEW_FEATURES.md#1-winston-logger) for details.
+
+### 2. **AWS Secrets Manager Integration** 🔐
+Secure secret management with automatic fallback to environment variables in development.
+
+```typescript
+import { getYouTubeApiKey } from './lib/secrets';
+const apiKey = await getYouTubeApiKey();
+```
+
+See [docs/NEW_FEATURES.md](docs/NEW_FEATURES.md#2-aws-secrets-manager-integration) for details.
+
+### 3. **RabbitMQ Queue Service** 🐰
+Asynchronous message queuing for external API calls to prevent blocking during high load.
+
+```typescript
+import { publishMessage, QUEUES } from './lib/queue';
+await publishMessage(QUEUES.VIDEO_ANALYSIS, { videoUrl });
+```
+
+See [docs/NEW_FEATURES.md](docs/NEW_FEATURES.md#3-rabbitmq-queue-service) for details.
+
+### 4. **Playwright E2E Testing** 🎭
+End-to-end testing across multiple browsers and mobile viewports.
+
+```bash
+npm run test:e2e
+```
+
+See [docs/TESTING.md](docs/TESTING.md) for details.
+
+### 5. **Comprehensive Unit Tests** ✅
+Unit tests for all core modules using Vitest with 80%+ coverage goal.
+
+```bash
+npm test
+npm run test:coverage
+```
+
+See [docs/TESTING.md](docs/TESTING.md) for details.
+
+### Documentation
+- 📖 [New Features Guide](docs/NEW_FEATURES.md) - Detailed documentation for all new features
+- 🧪 [Testing Guide](docs/TESTING.md) - Testing conventions and best practices
+- 📋 [Environment Variables](.env.example) - Complete environment configuration template
 
 ---
 

@@ -9,3 +9,10 @@ output.mddebug_test.mp4
 .next/
 firebase-debug.log
 *.log
+logs/
+playwright-report/
+test-results/
+
+genaiscript.d.ts
+tsconfig.json
+jsconfig.json

@@ -56,6 +56,8 @@ import {
   type AnalysisForAction,
   type ActionOutput,
 } from "../services/action";
+import { logApiCall, logApiError } from './logger';
+import { getYouTubeApiKey } from './secrets';
 
 // =============================================================================
 // DIGITAL REFINERY PIPELINE STAGES
@@ -187,8 +189,6 @@ function getFirebaseApp() {
 // YOUTUBE API INTEGRATION
 // =============================================================================
 
-const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY || "AIzaSyDnzvT2S3Y27ypu-e2LIMQxWtMYhCHwpsQ";
-
 /**
  * Extract YouTube video ID from various URL formats
  */
@@ -226,14 +226,21 @@ function parseDuration(duration: string): number {
  * INGEST STAGE - Step 1: Validation
  */
 export async function fetchYouTubeMetadata(videoId: string): Promise<YouTubeMetadata> {
+  const startTime = Date.now();
+  const YOUTUBE_API_KEY = await getYouTubeApiKey();
+  
   const endpoint = `https://www.googleapis.com/youtube/v3/videos?` +
     `id=${videoId}&part=snippet,contentDetails,topicDetails&key=${YOUTUBE_API_KEY}`;
 
   const response = await fetch(endpoint);
+  const duration = Date.now() - startTime;
 
   if (!response.ok) {
+    logApiError('YouTube Data API', `/videos/${videoId}`, new Error(`${response.status} ${response.statusText}`), duration);
     throw new Error(`YouTube API error: ${response.status} ${response.statusText}`);
   }
+
+  logApiCall('YouTube Data API', `/videos/${videoId}`, duration);
 
   const data = await response.json();
 
