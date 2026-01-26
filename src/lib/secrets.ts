@@ -112,7 +112,11 @@ export async function getFirebaseApiKey(): Promise<string> {
  * Get RabbitMQ connection URL
  */
 export async function getRabbitMQUrl(): Promise<string> {
-  return getSecret('RABBITMQ_URL', 'RABBITMQ_URL') || 'amqp://localhost:5672';
+  const rabbitmqUrl = await getSecret('RABBITMQ_URL', 'RABBITMQ_URL');
+  if (rabbitmqUrl) {
+    return rabbitmqUrl;
+  }
+  return 'amqp://localhost:5672';
 }
 
 /**
