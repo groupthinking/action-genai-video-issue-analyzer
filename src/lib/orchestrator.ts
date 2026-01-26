@@ -242,10 +242,6 @@ export async function fetchYouTubeMetadata(videoId: string): Promise<YouTubeMeta
 
   logApiCall('YouTube Data API', `/videos/${videoId}`, duration);
 
-  if (!response.ok) {
-    throw new Error(`YouTube API error: ${response.status} ${response.statusText}`);
-  }
-
   const data = await response.json();
 
   if (!data.items || data.items.length === 0) {

@@ -35,9 +35,16 @@ export async function connect(): Promise<void> {
 
   if (isConnecting) {
     logger.debug('RabbitMQ connection in progress, waiting...');
-    // Wait for connection to complete
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    return connect();
+    // Wait for connection to complete with exponential backoff
+    let waitTime = 500;
+    for (let i = 0; i < 5; i++) {
+      await new Promise((resolve) => setTimeout(resolve, waitTime));
+      if (connection && channel) {
+        return;
+      }
+      waitTime *= 2;
+    }
+    throw new Error('RabbitMQ connection timeout');
   }
 
   try {

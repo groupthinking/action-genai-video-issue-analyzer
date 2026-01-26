@@ -79,7 +79,12 @@ export async function getSecret(secretName: string, envFallback?: string): Promi
  * Get Google API Key
  */
 export async function getGoogleApiKey(): Promise<string> {
-  return getSecret('GOOGLE_API_KEY', 'GOOGLE_API_KEY') || getSecret('GEMINI_API_KEY', 'GEMINI_API_KEY');
+  const googleKey = await getSecret('GOOGLE_API_KEY', 'GOOGLE_API_KEY');
+  if (googleKey) {
+    return googleKey;
+  }
+  // Fallback to GEMINI_API_KEY
+  return getSecret('GEMINI_API_KEY', 'GEMINI_API_KEY');
 }
 
 /**
