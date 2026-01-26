@@ -12,3 +12,7 @@ firebase-debug.log
 logs/
 playwright-report/
 test-results/
+
+genaiscript.d.ts
+tsconfig.json
+jsconfig.json
