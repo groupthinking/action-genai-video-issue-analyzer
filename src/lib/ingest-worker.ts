@@ -15,6 +15,8 @@
 
 import { Storage } from '@google-cloud/storage';
 import { spawn } from 'child_process';
+import logger, { logApiCall, logApiError, logPipelineStage } from './logger';
+import { getYouTubeApiKey } from './secrets';
 
 // =============================================================================
 // CONFIGURATION
@@ -22,9 +24,6 @@ import { spawn } from 'child_process';
 
 const storage = new Storage();
 const bucketName = process.env.GCS_BUCKET_NAME || 'uvai-videos';
-
-// YouTube API key for metadata validation
-const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY || 'AIzaSyDnzvT2S3Y27ypu-e2LIMQxWtMYhCHwpsQ';
 
 // =============================================================================
 // YOUTUBE METADATA
@@ -64,51 +63,69 @@ function parseDuration(duration: string): number {
  * INGEST STAGE - Step 1: Validation
  */
 export async function fetchYouTubeMetadata(videoId: string): Promise<YouTubeMetadata> {
+  const startTime = Date.now();
+  const YOUTUBE_API_KEY = await getYouTubeApiKey();
+  
   const endpoint = `https://www.googleapis.com/youtube/v3/videos?` +
     `id=${videoId}&part=snippet,contentDetails,topicDetails&key=${YOUTUBE_API_KEY}`;
 
-  const response = await fetch(endpoint);
+  try {
+    logger.debug(`Fetching YouTube metadata for video: ${videoId}`);
+    const response = await fetch(endpoint);
+    const duration = Date.now() - startTime;
 
-  if (!response.ok) {
-    throw new Error(`YouTube API error: ${response.status} ${response.statusText}`);
+    if (!response.ok) {
+      // Sanitize endpoint to avoid logging API key
+      const sanitizedEndpoint = endpoint.replace(/([?&]key=)[^&]*/i, '$1***');
+      logApiError('YouTube Data API', sanitizedEndpoint, new Error(`${response.status} ${response.statusText}`), duration);
+      throw new Error(`YouTube API error: ${response.status} ${response.statusText}`);
+    }
+
+    logApiCall('YouTube Data API', `/videos/${videoId}`, duration);
+
+    const data = await response.json();
+
+    if (!data.items || data.items.length === 0) {
+      throw new Error(`Video not found: ${videoId}`);
+    }
+
+    const item = data.items[0];
+    const snippet = item.snippet;
+    const contentDetails = item.contentDetails;
+    const topicDetails = item.topicDetails || {};
+
+    // Determine if video is actionable (tutorials, demos, technical content)
+    const actionableKeywords = [
+      'tutorial', 'how to', 'guide', 'demo', 'walkthrough',
+      'coding', 'programming', 'development', 'deploy', 'build',
+      'api', 'sdk', 'framework', 'cloud', 'kubernetes', 'docker'
+    ];
+    const titleLower = snippet.title.toLowerCase();
+    const descLower = snippet.description.toLowerCase();
+    const isActionable = actionableKeywords.some(
+      keyword => titleLower.includes(keyword) || descLower.includes(keyword)
+    );
+
+    return {
+      videoId,
+      title: snippet.title,
+      description: snippet.description,
+      channelTitle: snippet.channelTitle,
+      duration: contentDetails.duration,
+      durationSeconds: parseDuration(contentDetails.duration),
+      hasCaptions: contentDetails.caption === 'true',
+      publishedAt: snippet.publishedAt,
+      thumbnailUrl: snippet.thumbnails?.high?.url || snippet.thumbnails?.default?.url,
+      topics: topicDetails.topicCategories || [],
+      isActionable,
+    };
+  } catch (error) {
+    logger.error('Failed to fetch YouTube metadata', {
+      videoId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw error;
   }
-
-  const data = await response.json();
-
-  if (!data.items || data.items.length === 0) {
-    throw new Error(`Video not found: ${videoId}`);
-  }
-
-  const item = data.items[0];
-  const snippet = item.snippet;
-  const contentDetails = item.contentDetails;
-  const topicDetails = item.topicDetails || {};
-
-  // Determine if video is actionable (tutorials, demos, technical content)
-  const actionableKeywords = [
-    'tutorial', 'how to', 'guide', 'demo', 'walkthrough',
-    'coding', 'programming', 'development', 'deploy', 'build',
-    'api', 'sdk', 'framework', 'cloud', 'kubernetes', 'docker'
-  ];
-  const titleLower = snippet.title.toLowerCase();
-  const descLower = snippet.description.toLowerCase();
-  const isActionable = actionableKeywords.some(
-    keyword => titleLower.includes(keyword) || descLower.includes(keyword)
-  );
-
-  return {
-    videoId,
-    title: snippet.title,
-    description: snippet.description,
-    channelTitle: snippet.channelTitle,
-    duration: contentDetails.duration,
-    durationSeconds: parseDuration(contentDetails.duration),
-    hasCaptions: contentDetails.caption === 'true',
-    publishedAt: snippet.publishedAt,
-    thumbnailUrl: snippet.thumbnails?.high?.url || snippet.thumbnails?.default?.url,
-    topics: topicDetails.topicCategories || [],
-    isActionable,
-  };
 }
 
 /**
@@ -132,7 +149,10 @@ export function validateVideoForProcessing(metadata: YouTubeMetadata): {
 
   // Warn if not actionable but don't reject
   if (!metadata.isActionable) {
-    console.warn(`[INGEST] Video may not contain actionable content: ${metadata.title}`);
+    logger.warn('[INGEST] Video may not contain actionable content', { 
+      title: metadata.title,
+      videoId: metadata.videoId 
+    });
   }
 
   return { valid: true };
@@ -160,7 +180,10 @@ export async function streamToGCS(videoId: string): Promise<string> {
   const fileName = `raw/${videoId}.mp4`;
   const file = storage.bucket(bucketName).file(fileName);
 
-  console.log(`[INGEST] Starting stream for ${videoId} to gs://${bucketName}/${fileName}`);
+  logger.info('[INGEST] Starting stream', { 
+    videoId, 
+    destination: `gs://${bucketName}/${fileName}` 
+  });
 
   return new Promise((resolve, reject) => {
     // 1. Create the GCS Write Stream
@@ -201,12 +224,18 @@ export async function streamToGCS(videoId: string): Promise<string> {
       // Log progress updates (yt-dlp sends progress to stderr)
       const progressMatch = data.toString().match(/(\d+\.\d+)%/);
       if (progressMatch) {
-        console.log(`[INGEST] Download progress: ${progressMatch[1]}%`);
+        logger.debug('[INGEST] Download progress', { 
+          videoId, 
+          progress: `${progressMatch[1]}%` 
+        });
       }
     });
 
     ytDlp.on('error', (err) => {
-      console.error('[INGEST] yt-dlp process error:', err);
+      logger.error('[INGEST] yt-dlp process error', { 
+        videoId, 
+        error: err.message 
+      });
       gcsStream.destroy(err);
       reject(err);
     });
@@ -214,6 +243,11 @@ export async function streamToGCS(videoId: string): Promise<string> {
     ytDlp.on('close', (code) => {
       if (code !== 0) {
         const error = new Error(`yt-dlp exited with code ${code}: ${stderrData}`);
+        logger.error('[INGEST] yt-dlp failed', { 
+          videoId, 
+          code, 
+          stderr: stderrData 
+        });
         gcsStream.destroy(error);
         reject(error);
       } else {
@@ -224,12 +258,15 @@ export async function streamToGCS(videoId: string): Promise<string> {
 
     gcsStream.on('finish', () => {
       const gcsUri = `gs://${bucketName}/${fileName}`;
-      console.log(`[INGEST] Stream complete: ${gcsUri}`);
+      logger.info('[INGEST] Stream complete', { videoId, gcsUri });
       resolve(gcsUri);
     });
 
     gcsStream.on('error', (err) => {
-      console.error('[INGEST] GCS stream error:', err);
+      logger.error('[INGEST] GCS stream error', { 
+        videoId, 
+        error: err.message 
+      });
       ytDlp.kill(); // Kill the downloader if upload fails
       reject(err);
     });
@@ -256,27 +293,36 @@ export interface IngestResult {
 export async function ingestVideo(videoId: string): Promise<IngestResult> {
   const startTime = Date.now();
 
-  console.log(`[INGEST] Starting ingestion for video: ${videoId}`);
+  logPipelineStage('INGEST', videoId, 'start');
+  logger.info('[INGEST] Starting ingestion', { videoId });
 
   // Step 1: Fetch and validate metadata
-  console.log(`[INGEST] Step 1/3: Fetching YouTube metadata...`);
+  logger.info('[INGEST] Step 1/3: Fetching YouTube metadata', { videoId });
   const metadata = await fetchYouTubeMetadata(videoId);
-  console.log(`[INGEST] Video: "${metadata.title}" (${metadata.duration})`);
+  logger.info('[INGEST] Video metadata fetched', { 
+    videoId,
+    title: metadata.title, 
+    duration: metadata.duration 
+  });
 
   // Step 2: Validate content
-  console.log(`[INGEST] Step 2/3: Validating video content...`);
+  logger.info('[INGEST] Step 2/3: Validating video content', { videoId });
   const validation = validateVideoForProcessing(metadata);
   if (!validation.valid) {
     throw new Error(`Video validation failed: ${validation.reason}`);
   }
-  console.log(`[INGEST] Validation passed. Actionable: ${metadata.isActionable}`);
+  logger.info('[INGEST] Validation passed', { 
+    videoId,
+    isActionable: metadata.isActionable 
+  });
 
   // Step 3: Stream to GCS
-  console.log(`[INGEST] Step 3/3: Streaming to GCS...`);
+  logger.info('[INGEST] Step 3/3: Streaming to GCS', { videoId });
   const gcsUri = await streamToGCS(videoId);
 
   const duration = Date.now() - startTime;
-  console.log(`[INGEST] Complete in ${duration}ms: ${gcsUri}`);
+  logPipelineStage('INGEST', videoId, 'complete', duration);
+  logger.info('[INGEST] Ingestion complete', { videoId, gcsUri, duration });
 
   return {
     gcsUri,
