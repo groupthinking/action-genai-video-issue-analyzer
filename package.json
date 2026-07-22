@@ -5,7 +5,7 @@
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.975.0",
     "@dataconnect/generated": "file:src/dataconnect-generated",
-    "@google-cloud/storage": "^7.18.0",
+    "@google-cloud/storage": "^7.21.0",
     "@google-cloud/vertexai": "^1.10.0",
     "@google-cloud/video-intelligence": "^6.2.1",
     "@google/genai": "^1.38.0",
@@ -15,7 +15,7 @@
     "amqplib": "^0.10.9",
     "firebase": "^12.8.0",
     "genaiscript": "^2.3.13",
-    "next": "^16.1.2",
+    "next": "^16.2.6",
     "pg": "^8.17.2",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
@@ -60,14 +60,14 @@
     "@types/node": "^25.0.9",
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^4.5.2",
+    "@vitejs/plugin-react": "^6.0.4",
     "autoprefixer": "^10.4.23",
     "eslint": "^9.39.2",
     "eslint-config-next": "^16.1.2",
     "jsdom": "^26.1.0",
-    "postcss": "^8.5.6",
+    "postcss": "^8.5.10",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3",
-    "vitest": "^3.1.3"
+    "vitest": "^4.1.10"
   }
 }
